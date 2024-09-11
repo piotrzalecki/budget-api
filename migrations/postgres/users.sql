@@ -14,3 +14,6 @@ ALTER TABLE
   public.users
 ADD
   CONSTRAINT users_pkey PRIMARY KEY (id)
+
+-- Adds defult admind@admin.com user with password: password
+insert into "public"."users" ("created_at", "email", "first_name", "id", "last_name", "password", "updated_at", "user_active") values ('2024-08-01 18:18:36.377487', 'admin@admin.com', 'Admin', 1, 'User', '$2a$12$/izY/i03vRWj.aEnBdwt0ue4JnTRqQWuXdFufcS4StNr7fbfsu8Fi', '2024-08-01 18:18:36.377487', 1)

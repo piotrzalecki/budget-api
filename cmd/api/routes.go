@@ -6,9 +6,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/piotrzalecki/budget-api/internal/handlers"
+	mid "github.com/piotrzalecki/budget-api/internal/middleware"
 )
 
-func (app *application) routes() http.Handler {
+func routes() http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
 
@@ -21,19 +23,19 @@ func (app *application) routes() http.Handler {
 		MaxAge:           300,
 	}))
 
-	mux.Post("/users/login", app.Login)
-	mux.Post("/users/logout", app.Logout)
+	mux.Post("/users/login", handlers.Repo.Login)
+	mux.Post("/users/logout", handlers.Repo.Logout)
 
-	mux.Post("/validate-token", app.ValidateToken)
+	mux.Post("/validate-token", handlers.Repo.ValidateToken)
 
 	mux.Route("/admin", func(mux chi.Router) {
-		mux.Use(app.AuthTokenMiddlewere)
+		mux.Use(mid.Mid.AuthTokenMiddlewere)
 
-		mux.Post("/users", app.AllUsers)
-		mux.Post("/users/save", app.EditUser)
-		mux.Post("/users/get/{id}", app.GetUser)
-		mux.Post("/users/delete", app.DeleteUser)
-		mux.Post("/log-user-out/{id}", app.LogUserOutAdnSetInactive)
+		mux.Post("/users", handlers.Repo.AllUsers)
+		mux.Post("/users/save", handlers.Repo.EditUser)
+		mux.Post("/users/get/{id}", handlers.Repo.GetUser)
+		mux.Post("/users/delete", handlers.Repo.DeleteUser)
+		mux.Post("/log-user-out/{id}", handlers.Repo.LogUserOutAdnSetInactive)
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))

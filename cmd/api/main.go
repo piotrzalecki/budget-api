@@ -5,25 +5,15 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"vue-api/internal/data"
-	"vue-api/internal/driver"
+
+	"github.com/piotrzalecki/budget-api/internal/config"
+	"github.com/piotrzalecki/budget-api/internal/data"
+	"github.com/piotrzalecki/budget-api/internal/driver"
+	"github.com/piotrzalecki/budget-api/internal/handlers"
+	mid "github.com/piotrzalecki/budget-api/internal/middleware"
 )
 
-type config struct {
-	port int
-}
-
-type application struct {
-	config      config
-	infoLog     *log.Logger
-	errorLog    *log.Logger
-	models      data.Models
-	environment string
-}
-
 func main() {
-	var cfg config
-	cfg.port = 8081
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -38,25 +28,33 @@ func main() {
 	}
 	defer db.SQL.Close()
 
-	app := &application{
-		config:      cfg,
-		infoLog:     infoLog,
-		errorLog:    errorLog,
-		models:      data.New(db.SQL),
-		environment: environment,
+	appConfig := &config.AppConfig{
+		Port:        8081,
+		Env:         environment,
+		Version:     "0.0.1",
+		InfoLogger:  infoLog,
+		ErrorLogger: errorLog,
+		Models:      data.New(db.SQL),
 	}
-	err = app.serve()
+
+	repo := handlers.NewRepo(appConfig)
+	handlers.NewHandlers(repo)
+
+	midRepo := mid.NewMid(appConfig)
+	mid.NewMiddleware(midRepo)
+
+	err = serve(appConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (app *application) serve() error {
-	app.infoLog.Println("API listening on port", app.config.port)
+func serve(cfg *config.AppConfig) error {
+	cfg.InfoLogger.Println("API listening on port", cfg.Port)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", app.config.port),
-		Handler: app.routes(),
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Handler: routes(),
 	}
 
 	return srv.ListenAndServe()
