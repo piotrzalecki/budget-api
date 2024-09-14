@@ -13,12 +13,22 @@ func New(dbPool *sql.DB) Models {
 	db = dbPool
 
 	return Models{
-		User:  User{},
-		Token: Token{},
+		User:                  User{},
+		Token:                 Token{},
+		TransactionRecurrence: TransactionRecurrence{},
+		Transaction:           Transaction{},
+		Tag:                   Tag{},
+		Log:                   Log{},
+		Budget:                Budget{},
 	}
 }
 
 type Models struct {
-	User  User
-	Token Token
+	User                  User
+	Token                 Token
+	TransactionRecurrence TransactionRecurrence
+	Transaction           Transaction
+	Tag                   Tag
+	Log                   Log
+	Budget                Budget
 }
