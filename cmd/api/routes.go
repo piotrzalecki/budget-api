@@ -31,11 +31,42 @@ func routes() http.Handler {
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(mid.Mid.AuthTokenMiddlewere)
 
+		// users
 		mux.Post("/users", handlers.Repo.AllUsers)
 		mux.Post("/users/save", handlers.Repo.EditUser)
 		mux.Post("/users/get/{id}", handlers.Repo.GetUser)
 		mux.Post("/users/delete", handlers.Repo.DeleteUser)
 		mux.Post("/log-user-out/{id}", handlers.Repo.LogUserOutAdnSetInactive)
+
+		// tags
+		mux.Post("/dashboard/tags", handlers.Repo.Tags)
+		mux.Put("/dashboard/tags", handlers.Repo.TagsCreateUpdate)
+		mux.Patch("/dashboard/tags", handlers.Repo.TagsCreateUpdate)
+		mux.Delete("/dashboard/tags/delete", handlers.Repo.TagsDelete)
+		mux.Post("/dashboard/tags/{id}", handlers.Repo.TagById)
+
+		// budgets
+		mux.Post("/dashboard/budgets", handlers.Repo.Budgets)
+		mux.Put("/dashboard/budgets", handlers.Repo.BudgetsCreateUpdate)
+		mux.Patch("/dashboard/budgets", handlers.Repo.BudgetsCreateUpdate)
+		mux.Delete("/dashboard/budgets/delete", handlers.Repo.BudgetsDelete)
+		mux.Post("/dashboard/budgets/{id}", handlers.Repo.BudgetsById)
+
+		// transactions recurrences
+		mux.Post("/dashboard/transactions-recurrences", handlers.Repo.TransactionsRecurrences)
+		mux.Put("/dashboard/transactions-recurrences/", handlers.Repo.TransactionsRecurrencesCreate)
+
+		//transactions
+		mux.Post("/dashboard/transactions", handlers.Repo.TransactionsAll)
+		mux.Post("/dashboard/transactions/{id}", handlers.Repo.TransactionsById)
+		mux.Delete("/dashboard/transactions", handlers.Repo.TransactionsDelete)
+		mux.Put("/dashboard/transactions", handlers.Repo.TransactionsCreateUpdate)
+		mux.Patch("/dashboard/transactions", handlers.Repo.TransactionsCreateUpdate)
+		mux.Post("/dashboard/transactions/set-all-active", handlers.Repo.TransactionsSetStatusAllActive)
+
+		//Logs
+		mux.Get("/dashboard/logs", handlers.Repo.Logs)
+
 	})
 
 	fileServer := http.FileServer(http.Dir("./static/"))
