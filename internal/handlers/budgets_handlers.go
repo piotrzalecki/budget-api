@@ -75,7 +75,7 @@ func (rep *Repository) BudgetsDelete(w http.ResponseWriter, r *http.Request) {
 
 	payload := jsonResponse{
 		Error:   false,
-		Message: "Book deleted!",
+		Message: "Budget deleted!",
 	}
 
 	rep.WriteJSON(w, http.StatusOK, payload)

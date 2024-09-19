@@ -42,19 +42,19 @@ func routes() http.Handler {
 		mux.Post("/dashboard/tags", handlers.Repo.Tags)
 		mux.Put("/dashboard/tags", handlers.Repo.TagsCreateUpdate)
 		mux.Patch("/dashboard/tags", handlers.Repo.TagsCreateUpdate)
-		mux.Delete("/dashboard/tags/delete", handlers.Repo.TagsDelete)
+		mux.Delete("/dashboard/tags", handlers.Repo.TagsDelete)
 		mux.Post("/dashboard/tags/{id}", handlers.Repo.TagById)
 
 		// budgets
 		mux.Post("/dashboard/budgets", handlers.Repo.Budgets)
 		mux.Put("/dashboard/budgets", handlers.Repo.BudgetsCreateUpdate)
 		mux.Patch("/dashboard/budgets", handlers.Repo.BudgetsCreateUpdate)
-		mux.Delete("/dashboard/budgets/delete", handlers.Repo.BudgetsDelete)
+		mux.Delete("/dashboard/budgets", handlers.Repo.BudgetsDelete)
 		mux.Post("/dashboard/budgets/{id}", handlers.Repo.BudgetsById)
 
 		// transactions recurrences
 		mux.Post("/dashboard/transactions-recurrences", handlers.Repo.TransactionsRecurrences)
-		mux.Put("/dashboard/transactions-recurrences/", handlers.Repo.TransactionsRecurrencesCreate)
+		mux.Put("/dashboard/transactions-recurrences", handlers.Repo.TransactionsRecurrencesCreate)
 
 		//transactions
 		mux.Post("/dashboard/transactions", handlers.Repo.TransactionsAll)
