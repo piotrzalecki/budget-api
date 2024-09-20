@@ -6,10 +6,10 @@ import (
 )
 
 type Log struct {
-	Id        int
-	Log       string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        int	`json:"id"`
+	Log       string	`json:"log"`	
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt time.Time	`json:"updated_at"`
 }
 
 func (l *Log) AllLogs() ([]Log, error) {

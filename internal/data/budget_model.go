@@ -6,11 +6,11 @@ import (
 )
 
 type Budget struct {
-	Id          int
-	Name        string
-	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Id          int	`json:"id"`
+	Name        string	`json:"name"`
+	Description string	`json:"description"`
+	CreatedAt   time.Time	`json:"created_at"`
+	UpdatedAt   time.Time	`json:"updated_at"`
 }
 
 func (b *Budget) CreateBudget(bud Budget) (int, error) {

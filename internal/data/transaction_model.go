@@ -6,18 +6,18 @@ import (
 )
 
 type Transaction struct {
-	Id                    int
-	Name                  string
-	Description           string
-	Budget                Budget
-	Quote                 float32
-	TransactionRecurrence TransactionRecurrence
-	Active                bool
-	Starts                time.Time
-	Ends                  time.Time
-	Tag                   Tag
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	Id                    int	`json:"id"`
+	Name                  string	`json:"name"`
+	Description           string	`json:"description"`
+	Budget                Budget	`json:"budget"`
+	Quote                 float32	`json:"quote"`
+	TransactionRecurrence TransactionRecurrence `json:"transaction_recurrence"`
+	Active                bool	`json:"active"`
+	Starts                time.Time	`json:"starts"`
+	Ends                  time.Time	`json:"ends"`
+	Tag                   Tag	`json:"tag"`
+	CreatedAt             time.Time	`json:"created_at"`
+	UpdatedAt             time.Time	`json:"updated_at"`
 }
 
 func (t *Transaction) CreateTransaction(trn Transaction) (int, error) {

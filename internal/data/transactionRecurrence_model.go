@@ -6,12 +6,12 @@ import (
 )
 
 type TransactionRecurrence struct {
-	Id          int
-	Name        string
-	Description string
-	AddTime     string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Id          int	`json:"id"`
+	Name        string	`json:"name"`
+	Description string	`json:"description"`
+	AddTime     string	`json:"add_time"`
+	CreatedAt   time.Time	`json:"created_at"`
+	UpdatedAt   time.Time	`json:"updated_at"`
 }
 
 func (t *TransactionRecurrence) CreateTransactionsRecurrences(trec TransactionRecurrence) (int, error) {
