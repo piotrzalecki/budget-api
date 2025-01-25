@@ -31,7 +31,7 @@ func (l *Log) AllLogs() ([]Log, error) {
 		err := rows.Scan(
 			&l.Id,
 			&l.Log,
-			&l.UpdatedAt,
+			&l.CreatedAt,
 			&l.UpdatedAt,
 		)
 		if err != nil {
@@ -48,21 +48,23 @@ func (l *Log) AllLogs() ([]Log, error) {
 	return logs, nil
 }
 
-func (l *Log) AddLog(log string) (int, error) {
+func (l *Log) AddLog(log string) (error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	stmt := "INSERT INTO logs (log, created_at, updated_at) VALUES ($1, $2, $3)  RETURNING id"
-	var id int
-	err := db.QueryRowContext(ctx, stmt,
+
+
+	_, err := db.ExecContext(ctx, stmt,
 		log,
 		time.Now(),
 		time.Now(),
-	).Scan(&id)
+	)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return id, nil
+	return nil
+
 }

@@ -57,7 +57,7 @@ func (t *Transaction) AllTransactions() ([]Transaction, error) {
 	LEFT JOIN budgets bd ON (tr.budget = bd.id)
 	LEFT JOIN transactions_recurrences trs ON (tr.transaction_recurrence = trs.id)
 	LEFT JOIN tags tgs ON (tr.tag = tgs.id)
-	ORDER BY tr.starts ASC`
+	ORDER BY tr.starts ASC, tr.active DESC`
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
