@@ -63,6 +63,7 @@ func routes() http.Handler {
 		mux.Put("/dashboard/transactions", handlers.Repo.TransactionsCreateUpdate)
 		mux.Patch("/dashboard/transactions", handlers.Repo.TransactionsCreateUpdate)
 		mux.Post("/dashboard/transactions/set-all-active", handlers.Repo.TransactionsSetStatusAllActive)
+		mux.Post("/dashboard/transactions/set-status", handlers.Repo.TransactionsSetStatus)
 
 		//Logs
 		mux.Post("/dashboard/logs", handlers.Repo.Logs)

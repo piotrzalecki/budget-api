@@ -128,20 +128,30 @@ func (rep *Repository) TransactionsSetStatusAllActive(w http.ResponseWriter, r *
 	rep.WriteJSON(w, http.StatusOK, payload)
 }
 
-// // Functions from previous version, left in case needed in a future
-// func (rep *Repository) TransactionsStatus(w http.ResponseWriter, r *http.Request) {
-// 	r.ParseForm()
-// 	trId := r.Form.Get("id")
-// 	trIdint, err := strconv.Atoi(trId)
-// 	handleError(w, r, err, fmt.Sprintf("can't retrieve transactions of id %s from uri", trId), "/dashboard/transactions")
-// 	err = m.DB.TransactionSetStatus(trIdint, false)
-// 	handleError(w, r, err, fmt.Sprintf("can't set status of transaction id %d", trIdint), "/dashboard/transactions")
+func (rep *Repository) TransactionsSetStatus(w http.ResponseWriter, r *http.Request) {
+	var requestPayload struct {
+		ID     int `json:"id"`
+		Status bool `json:"status"`
+	}
 
-// 	_, err = m.DB.AddLog(fmt.Sprintf("setting transaction  of id %d to active:false", trIdint))
-// 	handleError(w, r, err, fmt.Sprintf("adding log for transaction: %d failed", trIdint), "/dashboard/transactions")
+	err := rep.readJSON(w, r, &requestPayload)
+	if err != nil {
+		rep.errorJson(w, err)
+		return
+	}
 
-// 	http.Redirect(w, r, "/dashboard/transactions", http.StatusSeeOther)
-// }
+	err = rep.App.Models.Transaction.TransactionSetStatus(requestPayload.ID, requestPayload.Status)
+	if err != nil {
+		rep.errorJson(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "Transaction status updated!",
+	}
+	rep.WriteJSON(w, http.StatusOK, payload)
+}
 
 // // DONE
 
