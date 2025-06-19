@@ -1,0 +1,15 @@
+# .golangci.yml
+version: "2" # ← no quotes, integer
+
+run:
+  timeout: 4m
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - revive # (rules configurable below)
+
+  settings:
+    revive:
+      confidence: 0.8
