@@ -17,6 +17,9 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 migrate:
 	goose -dir $(MIGR_DIR) $(DB_DRIVER) $(DB_STRING) up
 
+reset:
+	goose -dir $(MIGR_DIR) $(DB_DRIVER) $(DB_STRING) reset
+
 ## Roll back the last migration
 migrate-down:
 	goose -dir $(MIGR_DIR) $(DB_DRIVER) $(DB_STRING) down
