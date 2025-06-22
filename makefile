@@ -11,7 +11,11 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 
 # ────────── Targets ───────────────────────────────────────────
 
-.PHONY: migrate migrate-down new-migration generate db-status
+.PHONY: migrate migrate-down new-migration generate db-status test
+
+## Run unit tests
+test:
+	go test ./...
 
 ## Apply all up migrations
 migrate:

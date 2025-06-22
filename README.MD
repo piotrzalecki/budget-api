@@ -1,5 +1,12 @@
 # budget-api
 
+## Authentication
+
+Every request must include header `X-API-Key: <value of $BUDGET_API_KEY>`.
+The server panics on startup if `BUDGET_API_KEY` is unset.
+
+**Note:** The `/health` endpoint does not require authentication.
+
 ## Dependencies
 
 # Development Tools
