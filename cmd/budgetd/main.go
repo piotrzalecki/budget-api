@@ -116,7 +116,12 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 		// Transaction routes with validation
 		v1.POST("/transactions", handler.ValidateRequest[model.CreateTransactionRequest](), handlers.CreateTransaction)
 		v1.GET("/transactions", handlers.GetTransactions)
+		v1.GET("/transactions/:id", handlers.GetTransactionByID)
 		v1.PATCH("/transactions/:id", handler.ValidateRequest[model.UpdateTransactionRequest](), handlers.UpdateTransaction)
+		// v1.DELETE("/transactions/:id", handlers.HardDeleteTransaction) Commented out until Admin user will be implemented
+		v1.GET("/transactions/by-recurring/:recurring_id", handlers.GetTransactionsByRecurringID)
+		v1.GET("/transactions/by-tag/:tag_id", handlers.GetTransactionsByTag)
+		v1.POST("/transactions/purge", handler.ValidateRequest[model.PurgeTransactionsRequest](), handlers.PurgeSoftDeletedTransactions)
 		
 		// Tag routes with validation
 		v1.POST("/tags", handler.ValidateRequest[model.CreateTagRequest](), handlers.CreateTag)

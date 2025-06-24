@@ -108,4 +108,9 @@ type APIResponse struct {
 type ErrorResponse struct {
 	Error string                 `json:"error"`
 	Data  map[string]interface{} `json:"data,omitempty"`
+}
+
+// PurgeTransactionsRequest represents the request body for purging soft deleted transactions
+type PurgeTransactionsRequest struct {
+	CutoffDate string `json:"cutoff_date" validate:"required,date"`
 } 

@@ -17,6 +17,9 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 test:
 	go test ./...
 
+run:
+	BUDGET_API_KEY=1234567890 go run cmd/budgetd/main.go
+
 ## Apply all up migrations
 migrate:
 	goose -dir $(MIGR_DIR) $(DB_DRIVER) $(DB_STRING) up
