@@ -18,7 +18,7 @@ test:
 	go test ./...
 
 run:
-	BUDGET_API_KEY=1234567890 go run cmd/budgetd/main.go
+	BUDGET_API_KEY=1234567890 go run ./cmd/budgetd
 
 ## Apply all up migrations
 migrate:
