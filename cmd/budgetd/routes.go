@@ -61,7 +61,8 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 	admin := router.Group("/admin")
 	admin.Use(handler.APIKeyAuth())
 	{
-		// TODO: Add scheduler endpoint
+		// Scheduler endpoint
+		admin.POST("/run-scheduler", handlers.RunScheduler)
 		
 		// Placeholder route to use admin variable
 		admin.GET("/", func(c *gin.Context) {

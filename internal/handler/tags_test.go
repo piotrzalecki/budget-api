@@ -24,6 +24,10 @@ type mockRepo struct {
 	tags []repo.Tag
 }
 
+func (m *mockRepo) GetDB() *sql.DB {
+	return nil
+}
+
 func (m *mockRepo) CreateTag(ctx context.Context, name string) (repo.Tag, error) {
 	if name == "" {
 		return repo.Tag{}, errors.New("name required")
@@ -53,7 +57,10 @@ func (m *mockRepo) ListTags(ctx context.Context) ([]repo.Tag, error) {
 }
 
 // All other methods panic if called
-func (m *mockRepo) WithTx(ctx context.Context, fn func(repo.Repository) error) error { panic("not implemented") }
+func (m *mockRepo) WithTx(ctx context.Context, fn func(repo.Repository) error) error {
+	return fn(m)
+}
+
 func (m *mockRepo) CreateUser(ctx context.Context, arg repo.CreateUserParams) (repo.User, error) { panic("not implemented") }
 func (m *mockRepo) GetUserByEmail(ctx context.Context, email string) (repo.User, error) { panic("not implemented") }
 func (m *mockRepo) GetUserByID(ctx context.Context, id int64) (repo.User, error) { panic("not implemented") }

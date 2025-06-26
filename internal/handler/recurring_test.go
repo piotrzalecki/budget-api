@@ -28,6 +28,11 @@ func (m *MockRepository) WithTx(ctx context.Context, fn func(repo.Repository) er
 	return args.Error(0)
 }
 
+// GetDB returns nil for mock (not used in tests)
+func (m *MockRepository) GetDB() *sql.DB {
+	return nil
+}
+
 // Add other required methods as needed for testing
 // For brevity, I'll just add the ones used in the recurring handlers
 

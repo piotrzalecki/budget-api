@@ -11,6 +11,9 @@ type Repository interface {
 	// Transaction management
 	WithTx(ctx context.Context, fn func(Repository) error) error
 
+	// Database access
+	GetDB() *sql.DB
+
 	// User operations
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)

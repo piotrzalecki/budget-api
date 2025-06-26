@@ -24,6 +24,14 @@ type mockTransactionRepo struct {
 	transactionTags map[int64][]repo.Tag // transactionID -> tags
 }
 
+func (m *mockTransactionRepo) GetDB() *sql.DB {
+	return nil
+}
+
+func (m *mockTransactionRepo) WithTx(ctx context.Context, fn func(repo.Repository) error) error {
+	return fn(m)
+}
+
 func (m *mockTransactionRepo) CreateTransaction(ctx context.Context, arg repo.CreateTransactionParams) (repo.Transaction, error) {
 	transaction := repo.Transaction{
 		ID:              int64(len(m.transactions) + 1),
@@ -135,7 +143,6 @@ func (m *mockTransactionRepo) DeleteAllTransactionTags(ctx context.Context, tran
 }
 
 // All other methods panic if called
-func (m *mockTransactionRepo) WithTx(ctx context.Context, fn func(repo.Repository) error) error { panic("not implemented") }
 func (m *mockTransactionRepo) CreateUser(ctx context.Context, arg repo.CreateUserParams) (repo.User, error) { panic("not implemented") }
 func (m *mockTransactionRepo) GetUserByEmail(ctx context.Context, email string) (repo.User, error) { panic("not implemented") }
 func (m *mockTransactionRepo) GetUserByID(ctx context.Context, id int64) (repo.User, error) { panic("not implemented") }

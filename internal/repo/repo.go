@@ -44,4 +44,9 @@ func (r *RepositoryImpl) WithTx(ctx context.Context, fn func(Repository) error) 
 
 	// Commit the transaction
 	return tx.Commit()
+}
+
+// GetDB returns the underlying database connection
+func (r *RepositoryImpl) GetDB() *sql.DB {
+	return r.db
 } 
