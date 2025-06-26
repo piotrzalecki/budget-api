@@ -502,4 +502,186 @@ func TestGetRecurringDueOnDateWithoutDate(t *testing.T) {
 	
 	// Verify mock expectations
 	mockRepo.AssertExpectations(t)
+}
+
+// TestGetMonthlyReport tests the GetMonthlyReport handler
+func TestGetMonthlyReport(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name           string
+		queryParams    string
+		mockTotals     repo.GetMonthlyTotalsRow
+		mockReport     []repo.GetMonthlyReportRow
+		expectedStatus int
+		expectedData   map[string]interface{}
+	}{
+		{
+			name:        "successful monthly report",
+			queryParams: "?ym=2025-06",
+			mockTotals: repo.GetMonthlyTotalsRow{
+				TotalInPence:     sql.NullFloat64{Float64: 5000, Valid: true},  // £50.00
+				TotalOutPence:    sql.NullFloat64{Float64: 3000, Valid: true},  // £30.00
+				TransactionCount: 5,
+			},
+			mockReport: []repo.GetMonthlyReportRow{
+				{
+					TagName:          sql.NullString{String: "Food", Valid: true},
+					TotalInPence:     sql.NullFloat64{Float64: 0, Valid: true},
+					TotalOutPence:    sql.NullFloat64{Float64: 2000, Valid: true}, // £20.00
+					TransactionCount: 3,
+				},
+				{
+					TagName:          sql.NullString{String: "Transport", Valid: true},
+					TotalInPence:     sql.NullFloat64{Float64: 0, Valid: true},
+					TotalOutPence:    sql.NullFloat64{Float64: 1000, Valid: true}, // £10.00
+					TransactionCount: 2,
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedData: map[string]interface{}{
+				"total_in":  "50.00",
+				"total_out": "30.00",
+				"by_tag": map[string]interface{}{
+					"Food": map[string]interface{}{
+						"total_in":  "0.00",
+						"total_out": "20.00",
+					},
+					"Transport": map[string]interface{}{
+						"total_in":  "0.00",
+						"total_out": "10.00",
+					},
+				},
+			},
+		},
+		{
+			name:           "invalid year-month format",
+			queryParams:    "?ym=invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectedData:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create mock repository
+			mockRepo := new(MockRepository)
+			
+			// Setup expectations
+			if tt.expectedStatus == http.StatusOK {
+				mockRepo.On("GetMonthlyTotals", mock.Anything, mock.Anything).Return(tt.mockTotals, nil)
+				mockRepo.On("GetMonthlyReport", mock.Anything, mock.Anything).Return(tt.mockReport, nil)
+			}
+
+			// Create handler
+			handler := NewHandler(mockRepo)
+
+			// Create request
+			req, _ := http.NewRequest("GET", "/api/v1/reports/monthly"+tt.queryParams, nil)
+			w := httptest.NewRecorder()
+
+			// Create gin context
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+
+			// Call handler
+			handler.GetMonthlyReport(c)
+
+			// Assert status code
+			assert.Equal(t, tt.expectedStatus, w.Code)
+
+			if tt.expectedStatus == http.StatusOK {
+				// Parse response
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				// Assert data
+				assert.Equal(t, tt.expectedData, response["data"])
+				assert.Nil(t, response["error"])
+			}
+
+			// Verify all expectations were met
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+// TestGetMonthlyTotals tests the GetMonthlyTotals handler
+func TestGetMonthlyTotals(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name           string
+		queryParams    string
+		mockTotals     repo.GetMonthlyTotalsRow
+		expectedStatus int
+		expectedData   map[string]interface{}
+	}{
+		{
+			name:        "successful monthly totals",
+			queryParams: "?ym=2025-06",
+			mockTotals: repo.GetMonthlyTotalsRow{
+				TotalInPence:     sql.NullFloat64{Float64: 5000, Valid: true},  // £50.00
+				TotalOutPence:    sql.NullFloat64{Float64: 3000, Valid: true},  // £30.00
+				TransactionCount: 5,
+			},
+			expectedStatus: http.StatusOK,
+			expectedData: map[string]interface{}{
+				"total_in":          "50.00",
+				"total_out":         "30.00",
+				"transaction_count": float64(5),
+				"year_month":        "2025-06",
+			},
+		},
+		{
+			name:           "invalid year-month format",
+			queryParams:    "?ym=invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectedData:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create mock repository
+			mockRepo := new(MockRepository)
+			
+			// Setup expectations
+			if tt.expectedStatus == http.StatusOK {
+				mockRepo.On("GetMonthlyTotals", mock.Anything, mock.Anything).Return(tt.mockTotals, nil)
+			}
+
+			// Create handler
+			handler := NewHandler(mockRepo)
+
+			// Create request
+			req, _ := http.NewRequest("GET", "/api/v1/reports/monthly/totals"+tt.queryParams, nil)
+			w := httptest.NewRecorder()
+
+			// Create gin context
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+
+			// Call handler
+			handler.GetMonthlyTotals(c)
+
+			// Assert status code
+			assert.Equal(t, tt.expectedStatus, w.Code)
+
+			if tt.expectedStatus == http.StatusOK {
+				// Parse response
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				// Assert data
+				assert.Equal(t, tt.expectedData, response["data"])
+				assert.Nil(t, response["error"])
+			}
+
+			// Verify all expectations were met
+			mockRepo.AssertExpectations(t)
+		})
+	}
 } 

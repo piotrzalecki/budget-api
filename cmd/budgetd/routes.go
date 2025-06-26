@@ -44,8 +44,9 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 		v1.PATCH("/recurring/:id/toggle", handlers.ToggleRecurringActive)
 		v1.GET("/recurring/due", handlers.GetRecurringDueOnDate)
 		
-		// Reports routes (TODO: Add when handlers are implemented)
-		// v1.GET("/reports/monthly", handlers.GetMonthlyReport)
+		// Reports routes
+		v1.GET("/reports/monthly", handlers.GetMonthlyReport)
+		v1.GET("/reports/monthly/totals", handlers.GetMonthlyTotals)
 		
 		// Placeholder route to use v1 variable
 		v1.GET("/", func(c *gin.Context) {
