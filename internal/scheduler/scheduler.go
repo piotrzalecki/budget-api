@@ -24,8 +24,6 @@ func RunScheduler(ctx context.Context, db *sql.DB, today time.Time, logger *zap.
 			return err
 		}
 		
-		processed = len(rules)
-		
 		// Process each due rule
 		for _, rule := range rules {
 			// Check if rule has ended
@@ -35,7 +33,28 @@ func RunScheduler(ctx context.Context, db *sql.DB, today time.Time, logger *zap.
 				if err != nil {
 					return err
 				}
+				processed++ // Count as processed (deactivated)
 				continue
+			}
+			
+			// Check if transaction already exists for this rule and date
+			existingTransactions, err := txRepo.GetTransactionsByRecurringID(ctx, sql.NullInt64{Int64: rule.ID, Valid: true})
+			if err != nil {
+				return err
+			}
+			
+			// Check if a transaction already exists for this due date
+			transactionExists := false
+			for _, tx := range existingTransactions {
+				if tx.TDate.Equal(rule.NextDueDate) {
+					transactionExists = true
+					break
+				}
+			}
+			
+			// Skip if transaction already exists
+			if transactionExists {
+				continue // Don't count as processed (skipped)
 			}
 			
 			// Create transaction from recurring rule
@@ -47,7 +66,7 @@ func RunScheduler(ctx context.Context, db *sql.DB, today time.Time, logger *zap.
 				SourceRecurring: sql.NullInt64{Int64: rule.ID, Valid: true},
 			}
 			
-			_, err := txRepo.CreateTransaction(ctx, transactionParams)
+			_, err = txRepo.CreateTransaction(ctx, transactionParams)
 			if err != nil {
 				return err
 			}
@@ -98,6 +117,8 @@ func RunScheduler(ctx context.Context, db *sql.DB, today time.Time, logger *zap.
 			if err != nil {
 				return err
 			}
+			
+			processed++ // Count as processed (transaction created)
 		}
 		
 		// Purge soft-deleted transactions older than 30 days
@@ -122,6 +143,7 @@ func RunScheduler(ctx context.Context, db *sql.DB, today time.Time, logger *zap.
 }
 
 // calculateNextDueDate calculates the next due date based on the recurring rule
+// It properly handles month-end edge cases like February 28th/29th
 func calculateNextDueDate(rule repo.Recurring, today time.Time) time.Time {
 	nextDue := rule.NextDueDate
 	
@@ -131,10 +153,54 @@ func calculateNextDueDate(rule repo.Recurring, today time.Time) time.Time {
 	case "weekly":
 		nextDue = nextDue.AddDate(0, 0, 7*int(rule.IntervalN))
 	case "monthly":
-		nextDue = nextDue.AddDate(0, int(rule.IntervalN), 0)
+		nextDue = addMonths(nextDue, int(rule.IntervalN))
 	case "yearly":
-		nextDue = nextDue.AddDate(int(rule.IntervalN), 0, 0)
+		nextDue = addYears(nextDue, int(rule.IntervalN))
 	}
 	
 	return nextDue
+}
+
+// addMonths adds the specified number of months to a date, handling month-end edge cases
+func addMonths(date time.Time, months int) time.Time {
+	year, month, day := date.Date()
+	
+	// Calculate new year and month
+	newYear := year + (int(month)-1+months)/12
+	newMonth := time.Month((int(month)-1+months)%12 + 1)
+	
+	// Handle month-end edge cases
+	// If the original day is the last day of the month, keep it as the last day
+	// Otherwise, try to use the same day, but clamp to the last day of the target month
+	
+	// Get the last day of the target month
+	lastDayOfTargetMonth := time.Date(newYear, newMonth+1, 1, 0, 0, 0, 0, date.Location()).AddDate(0, 0, -1).Day()
+	
+	// If original day is greater than the last day of target month, use the last day
+	if day > lastDayOfTargetMonth {
+		day = lastDayOfTargetMonth
+	}
+	
+	return time.Date(newYear, newMonth, day, date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), date.Location())
+}
+
+// addYears adds the specified number of years to a date, handling leap year edge cases
+func addYears(date time.Time, years int) time.Time {
+	year, month, day := date.Date()
+	newYear := year + years
+	
+	// Handle February 29th in leap years
+	if month == time.February && day == 29 {
+		// Check if the target year is a leap year
+		targetDate := time.Date(newYear, time.February, 29, 0, 0, 0, 0, date.Location())
+		if targetDate.Month() == time.February && targetDate.Day() == 29 {
+			// Target year is a leap year, February 29th is valid
+			return time.Date(newYear, month, day, date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), date.Location())
+		} else {
+			// Target year is not a leap year, use February 28th
+			return time.Date(newYear, month, 28, date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), date.Location())
+		}
+	}
+	
+	return time.Date(newYear, month, day, date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), date.Location())
 } 
