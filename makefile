@@ -11,7 +11,7 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 
 # ────────── Targets ───────────────────────────────────────────
 
-.PHONY: migrate migrate-down new-migration generate db-status test
+.PHONY: migrate migrate-down new-migration generate db-status test install-timer
 
 ## Run unit tests
 test:
@@ -49,6 +49,19 @@ generate:
 
 generate-pg:
 	sqlc generate file sqlc-prd.yaml
+
+## Install and enable systemd timer for budget scheduler
+## Usage: sudo make install-timer
+install-timer:
+	@echo "Installing budget scheduler systemd units..."
+	@cp deploy/budget-scheduler.service /etc/systemd/system/
+	@cp deploy/budget-scheduler.timer /etc/systemd/system/
+	@systemctl daemon-reload
+	@systemctl enable budget-scheduler.timer
+	@systemctl start budget-scheduler.timer
+	@echo "✅ Budget scheduler timer installed and enabled"
+	@echo "📊 Check status: systemctl status budget-scheduler.timer"
+	@echo "📋 View logs: journalctl -u budget-scheduler.service"
 
 # ────────── Helper shortcuts for Postgres (optional) ──────────
 # Example: PG_DSN = "postgres://user:pw@host:5432/appdb?sslmode=disable"
