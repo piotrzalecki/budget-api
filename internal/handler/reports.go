@@ -10,6 +10,17 @@ import (
 )
 
 // GetMonthlyReport handles GET /api/v1/reports/monthly
+// @Summary Get monthly report
+// @Description Get a detailed monthly report with totals and breakdown by tags
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Param ym query string false "Year-month in YYYY-MM format (defaults to current month)"
+// @Success 200 {object} map[string]interface{} "Monthly report data"
+// @Failure 400 {object} map[string]interface{} "Invalid year-month format"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /reports/monthly [get]
 func (h *Handler) GetMonthlyReport(c *gin.Context) {
 	// Get query parameter for year-month (YYYY-MM format)
 	ym := c.Query("ym")
@@ -110,6 +121,17 @@ func (h *Handler) GetMonthlyReport(c *gin.Context) {
 }
 
 // GetMonthlyTotals handles GET /api/v1/reports/monthly/totals
+// @Summary Get monthly totals
+// @Description Get monthly income/expense totals and transaction count
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Param ym query string false "Year-month in YYYY-MM format (defaults to current month)"
+// @Success 200 {object} map[string]interface{} "Monthly totals data"
+// @Failure 400 {object} map[string]interface{} "Invalid year-month format"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /reports/monthly/totals [get]
 func (h *Handler) GetMonthlyTotals(c *gin.Context) {
 	// Get query parameter for year-month (YYYY-MM format)
 	ym := c.Query("ym")

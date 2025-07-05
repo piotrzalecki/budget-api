@@ -12,6 +12,17 @@ import (
 )
 
 // CreateRecurring handles POST /api/v1/recurring
+// @Summary Create a new recurring transaction
+// @Description Create a new recurring transaction rule with optional tag associations
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param recurring body model.CreateRecurringRequest true "Recurring transaction data"
+// @Success 200 {object} map[string]interface{} "Recurring transaction created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring [post]
 func (h *Handler) CreateRecurring(c *gin.Context) {
 	// Get the validated request from context
 	request, ok := GetValidatedRequest[model.CreateRecurringRequest](c)
@@ -122,6 +133,15 @@ func (h *Handler) CreateRecurring(c *gin.Context) {
 }
 
 // GetRecurring handles GET /api/v1/recurring
+// @Summary Get all recurring transactions
+// @Description Get all recurring transaction rules for the authenticated user
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of recurring transactions"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring [get]
 func (h *Handler) GetRecurring(c *gin.Context) {
 	// TODO: Get user ID from context when authentication is implemented
 	// For now, use a default user ID of 1
@@ -185,6 +205,18 @@ func (h *Handler) GetRecurring(c *gin.Context) {
 }
 
 // GetRecurringByID handles GET /api/v1/recurring/:id
+// @Summary Get recurring transaction by ID
+// @Description Get a specific recurring transaction rule by its ID
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param id path int true "Recurring transaction ID"
+// @Success 200 {object} map[string]interface{} "Recurring transaction details"
+// @Failure 400 {object} map[string]interface{} "Invalid recurring transaction ID"
+// @Failure 404 {object} map[string]interface{} "Recurring transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/{id} [get]
 func (h *Handler) GetRecurringByID(c *gin.Context) {
 	// Parse ID from URL
 	idStr := c.Param("id")
@@ -254,6 +286,19 @@ func (h *Handler) GetRecurringByID(c *gin.Context) {
 }
 
 // UpdateRecurring handles PATCH /api/v1/recurring/:id
+// @Summary Update a recurring transaction
+// @Description Update an existing recurring transaction rule
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param id path int true "Recurring transaction ID"
+// @Param recurring body model.UpdateRecurringRequest true "Update data"
+// @Success 200 {object} map[string]interface{} "Recurring transaction updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 404 {object} map[string]interface{} "Recurring transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/{id} [patch]
 func (h *Handler) UpdateRecurring(c *gin.Context) {
 	// Parse ID from URL
 	idStr := c.Param("id")
@@ -415,6 +460,18 @@ func (h *Handler) UpdateRecurring(c *gin.Context) {
 }
 
 // DeleteRecurring handles DELETE /api/v1/recurring/:id
+// @Summary Delete a recurring transaction
+// @Description Delete a recurring transaction rule
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param id path int true "Recurring transaction ID"
+// @Success 204 "Recurring transaction deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid recurring transaction ID"
+// @Failure 404 {object} map[string]interface{} "Recurring transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/{id} [delete]
 func (h *Handler) DeleteRecurring(c *gin.Context) {
 	// Parse ID from URL
 	idStr := c.Param("id")
@@ -466,6 +523,17 @@ func (h *Handler) DeleteRecurring(c *gin.Context) {
 }
 
 // GetRecurringByTag handles GET /api/v1/recurring/by-tag/:tag_id
+// @Summary Get recurring transactions by tag
+// @Description Get all recurring transaction rules associated with a specific tag
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param tag_id path int true "Tag ID"
+// @Success 200 {object} map[string]interface{} "List of recurring transactions"
+// @Failure 400 {object} map[string]interface{} "Invalid tag ID"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/by-tag/{tag_id} [get]
 func (h *Handler) GetRecurringByTag(c *gin.Context) {
 	// Parse tag ID from URL
 	tagIDStr := c.Param("tag_id")
@@ -546,6 +614,15 @@ func (h *Handler) GetRecurringByTag(c *gin.Context) {
 }
 
 // ListActiveRecurring handles GET /api/v1/recurring/active
+// @Summary Get active recurring transactions
+// @Description Get all active recurring transaction rules for the authenticated user
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of active recurring transactions"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/active [get]
 func (h *Handler) ListActiveRecurring(c *gin.Context) {
 	// TODO: Get user ID from context when authentication is implemented
 	// For now, use a default user ID of 1
@@ -609,6 +686,18 @@ func (h *Handler) ListActiveRecurring(c *gin.Context) {
 }
 
 // ToggleRecurringActive handles PATCH /api/v1/recurring/:id/toggle
+// @Summary Toggle recurring transaction active status
+// @Description Toggle the active status of a recurring transaction rule
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param id path int true "Recurring transaction ID"
+// @Success 200 {object} map[string]interface{} "Recurring transaction status toggled successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid recurring transaction ID"
+// @Failure 404 {object} map[string]interface{} "Recurring transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/{id}/toggle [patch]
 func (h *Handler) ToggleRecurringActive(c *gin.Context) {
 	// Parse ID from URL
 	idStr := c.Param("id")
@@ -650,6 +739,17 @@ func (h *Handler) ToggleRecurringActive(c *gin.Context) {
 }
 
 // GetRecurringDueOnDate handles GET /api/v1/recurring/due?date=YYYY-MM-DD
+// @Summary Get recurring transactions due on a date
+// @Description Get all recurring transaction rules that are due on a specific date
+// @Tags recurring
+// @Accept json
+// @Produce json
+// @Param date query string false "Date to check (YYYY-MM-DD format, defaults to today)"
+// @Success 200 {object} map[string]interface{} "List of recurring transactions due on the date"
+// @Failure 400 {object} map[string]interface{} "Invalid date format"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /recurring/due [get]
 func (h *Handler) GetRecurringDueOnDate(c *gin.Context) {
 	// Get date from query parameter
 	dateStr := c.Query("date")

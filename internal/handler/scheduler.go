@@ -12,6 +12,15 @@ import (
 )
 
 // RunScheduler handles POST /admin/run-scheduler
+// @Summary Run the scheduler
+// @Description Manually trigger the scheduler to process recurring transactions due today
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Scheduler execution result"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /admin/run-scheduler [post]
 func (h *Handler) RunScheduler(c *gin.Context) {
 	// Get logger from context or create a new one
 	logger := zap.L()

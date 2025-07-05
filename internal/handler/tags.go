@@ -8,6 +8,17 @@ import (
 )
 
 // CreateTag handles POST /api/v1/tags
+// @Summary Create a new tag
+// @Description Create a new tag for categorizing transactions
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Param tag body model.CreateTagRequest true "Tag data"
+// @Success 200 {object} map[string]interface{} "Tag created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /tags [post]
 func (h *Handler) CreateTag(c *gin.Context) {
 	// Get the validated request from context
 	request, ok := GetValidatedRequest[model.CreateTagRequest](c)
@@ -40,6 +51,15 @@ func (h *Handler) CreateTag(c *gin.Context) {
 }
 
 // GetTags handles GET /api/v1/tags
+// @Summary Get all tags
+// @Description Get all available tags for the authenticated user
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of tags"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /tags [get]
 func (h *Handler) GetTags(c *gin.Context) {
 	// Get tags from the repository
 	tags, err := h.repo.ListTags(c.Request.Context())

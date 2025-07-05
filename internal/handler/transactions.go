@@ -12,6 +12,17 @@ import (
 )
 
 // CreateTransaction handles POST /api/v1/transactions
+// @Summary Create a new transaction
+// @Description Create a new transaction with optional tag associations
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param transaction body model.CreateTransactionRequest true "Transaction data"
+// @Success 200 {object} map[string]interface{} "Transaction created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions [post]
 func (h *Handler) CreateTransaction(c *gin.Context) {
 	// Get the validated request from context
 	request, ok := GetValidatedRequest[model.CreateTransactionRequest](c)
@@ -104,6 +115,18 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 }
 
 // GetTransactions handles GET /api/v1/transactions
+// @Summary Get transactions
+// @Description Get all transactions for the authenticated user, optionally filtered by date range
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param from query string false "Start date (YYYY-MM-DD format)"
+// @Param to query string false "End date (YYYY-MM-DD format)"
+// @Success 200 {object} map[string]interface{} "List of transactions"
+// @Failure 400 {object} map[string]interface{} "Invalid date format"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions [get]
 func (h *Handler) GetTransactions(c *gin.Context) {
 	// Get query parameters
 	from := c.Query("from")
@@ -204,6 +227,20 @@ func (h *Handler) GetTransactions(c *gin.Context) {
 }
 
 // UpdateTransaction handles PATCH /api/v1/transactions/{id}
+// @Summary Update a transaction
+// @Description Update an existing transaction's note, tags, or soft delete it
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Param transaction body model.UpdateTransactionRequest true "Update data"
+// @Success 200 {object} map[string]interface{} "Transaction updated successfully"
+// @Success 204 "Transaction deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 404 {object} map[string]interface{} "Transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions/{id} [patch]
 func (h *Handler) UpdateTransaction(c *gin.Context) {
 	// Get transaction ID from URL
 	idStr := c.Param("id")
@@ -324,6 +361,18 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 }
 
 // GetTransactionByID handles GET /api/v1/transactions/{id}
+// @Summary Get transaction by ID
+// @Description Get a specific transaction by its ID
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Success 200 {object} map[string]interface{} "Transaction details"
+// @Failure 400 {object} map[string]interface{} "Invalid transaction ID"
+// @Failure 404 {object} map[string]interface{} "Transaction not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions/{id} [get]
 func (h *Handler) GetTransactionByID(c *gin.Context) {
 	// Get transaction ID from URL
 	idStr := c.Param("id")
@@ -388,6 +437,17 @@ func (h *Handler) GetTransactionByID(c *gin.Context) {
 }
 
 // GetTransactionsByRecurringID handles GET /api/v1/transactions/by-recurring/{recurring_id}
+// @Summary Get transactions by recurring ID
+// @Description Get all transactions that were created from a specific recurring rule
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param recurring_id path int true "Recurring rule ID"
+// @Success 200 {object} map[string]interface{} "List of transactions"
+// @Failure 400 {object} map[string]interface{} "Invalid recurring ID"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions/by-recurring/{recurring_id} [get]
 func (h *Handler) GetTransactionsByRecurringID(c *gin.Context) {
 	// Get recurring ID from URL
 	recurringIDStr := c.Param("recurring_id")
@@ -449,6 +509,17 @@ func (h *Handler) GetTransactionsByRecurringID(c *gin.Context) {
 }
 
 // GetTransactionsByTag handles GET /api/v1/transactions/by-tag/{tag_id}
+// @Summary Get transactions by tag
+// @Description Get all transactions associated with a specific tag
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param tag_id path int true "Tag ID"
+// @Success 200 {object} map[string]interface{} "List of transactions"
+// @Failure 400 {object} map[string]interface{} "Invalid tag ID"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions/by-tag/{tag_id} [get]
 func (h *Handler) GetTransactionsByTag(c *gin.Context) {
 	// Get tag ID from URL
 	tagIDStr := c.Param("tag_id")
@@ -569,6 +640,17 @@ func (h *Handler) HardDeleteTransaction(c *gin.Context) {
 }
 
 // PurgeSoftDeletedTransactions handles POST /api/v1/transactions/purge
+// @Summary Purge soft deleted transactions
+// @Description Permanently delete transactions that were soft deleted before a specified date
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param request body model.PurgeTransactionsRequest true "Purge request data"
+// @Success 200 {object} map[string]interface{} "Purge completed successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /transactions/purge [post]
 func (h *Handler) PurgeSoftDeletedTransactions(c *gin.Context) {
 	// Get the validated request from context
 	request, ok := GetValidatedRequest[model.PurgeTransactionsRequest](c)

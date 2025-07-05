@@ -15,9 +15,45 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
+	_ "github.com/piotrzalecki/budget-api/internal/docs" // This is the generated docs
 	"github.com/piotrzalecki/budget-api/internal/handler"
 	"github.com/piotrzalecki/budget-api/internal/repo"
 )
+
+// @title           Budget API
+// @version         1.0
+// @description     A REST API for personal budget management with transaction tracking, recurring payments, and reporting.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
+// @description API key for authentication
+
+// @tag.name transactions
+// @tag.description Operations about transactions
+
+// @tag.name tags
+// @tag.description Operations about tags
+
+// @tag.name recurring
+// @tag.description Operations about recurring transactions
+
+// @tag.name reports
+// @tag.description Operations about reports
+
+// @tag.name admin
+// @tag.description Administrative operations
 
 func main() {
 	// Initialize logger

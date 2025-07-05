@@ -11,7 +11,7 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 
 # ────────── Targets ───────────────────────────────────────────
 
-.PHONY: migrate migrate-down new-migration generate db-status test install-timer
+.PHONY: migrate migrate-down new-migration generate db-status test install-timer docs
 
 ## Run unit tests
 test:
@@ -19,6 +19,10 @@ test:
 
 run:
 	BUDGET_API_KEY=1234567890 go run ./cmd/budgetd
+
+## Generate Swagger documentation
+docs:
+	~/go/bin/swag init -g cmd/budgetd/main.go -o internal/docs
 
 ## Apply all up migrations
 migrate:

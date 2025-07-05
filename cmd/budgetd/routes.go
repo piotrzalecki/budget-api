@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 
 	"github.com/piotrzalecki/budget-api/internal/handler"
@@ -12,6 +14,9 @@ import (
 )
 
 func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handler) {
+	// Swagger documentation
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Health endpoint (no auth required)
 	router.GET("/health", healthHandler(logger))
 
@@ -82,6 +87,13 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 	})
 }
 
+// @Summary Health check
+// @Description Check if the API is healthy and running
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Health status"
+// @Router /health [get]
 func healthHandler(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Debug("Health check requested")

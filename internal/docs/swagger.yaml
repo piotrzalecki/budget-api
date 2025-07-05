@@ -1,0 +1,874 @@
+basePath: /api/v1
+definitions:
+  model.CreateRecurringRequest:
+    properties:
+      amount:
+        type: string
+      description:
+        maxLength: 255
+        minLength: 1
+        type: string
+      end_date:
+        type: string
+      first_due_date:
+        type: string
+      frequency:
+        enum:
+        - daily
+        - weekly
+        - monthly
+        - yearly
+        type: string
+      interval_n:
+        maximum: 365
+        minimum: 1
+        type: integer
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - amount
+    - description
+    - first_due_date
+    - frequency
+    - interval_n
+    type: object
+  model.CreateTagRequest:
+    properties:
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  model.CreateTransactionRequest:
+    properties:
+      amount:
+        type: string
+      note:
+        type: string
+      t_date:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - amount
+    - t_date
+    type: object
+  model.PurgeTransactionsRequest:
+    properties:
+      cutoff_date:
+        type: string
+    required:
+    - cutoff_date
+    type: object
+  model.UpdateRecurringRequest:
+    properties:
+      active:
+        type: boolean
+      amount:
+        type: string
+      description:
+        maxLength: 255
+        minLength: 1
+        type: string
+      end_date:
+        type: string
+      first_due_date:
+        type: string
+      frequency:
+        enum:
+        - daily
+        - weekly
+        - monthly
+        - yearly
+        type: string
+      interval_n:
+        maximum: 365
+        minimum: 1
+        type: integer
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  model.UpdateTransactionRequest:
+    properties:
+      deleted:
+        type: boolean
+      note:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A REST API for personal budget management with transaction tracking,
+    recurring payments, and reporting.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Budget API
+  version: "1.0"
+paths:
+  /admin/run-scheduler:
+    post:
+      consumes:
+      - application/json
+      description: Manually trigger the scheduler to process recurring transactions
+        due today
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Scheduler execution result
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Run the scheduler
+      tags:
+      - admin
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check if the API is healthy and running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Health status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /recurring:
+    get:
+      consumes:
+      - application/json
+      description: Get all recurring transaction rules for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recurring transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all recurring transactions
+      tags:
+      - recurring
+    post:
+      consumes:
+      - application/json
+      description: Create a new recurring transaction rule with optional tag associations
+      parameters:
+      - description: Recurring transaction data
+        in: body
+        name: recurring
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateRecurringRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recurring transaction created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new recurring transaction
+      tags:
+      - recurring
+  /recurring/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a recurring transaction rule
+      parameters:
+      - description: Recurring transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Recurring transaction deleted successfully
+        "400":
+          description: Invalid recurring transaction ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Recurring transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a recurring transaction
+      tags:
+      - recurring
+    get:
+      consumes:
+      - application/json
+      description: Get a specific recurring transaction rule by its ID
+      parameters:
+      - description: Recurring transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recurring transaction details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid recurring transaction ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Recurring transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get recurring transaction by ID
+      tags:
+      - recurring
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing recurring transaction rule
+      parameters:
+      - description: Recurring transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: recurring
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateRecurringRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recurring transaction updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Recurring transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a recurring transaction
+      tags:
+      - recurring
+  /recurring/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: Toggle the active status of a recurring transaction rule
+      parameters:
+      - description: Recurring transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recurring transaction status toggled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid recurring transaction ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Recurring transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Toggle recurring transaction active status
+      tags:
+      - recurring
+  /recurring/active:
+    get:
+      consumes:
+      - application/json
+      description: Get all active recurring transaction rules for the authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of active recurring transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get active recurring transactions
+      tags:
+      - recurring
+  /recurring/by-tag/{tag_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all recurring transaction rules associated with a specific
+        tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: tag_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recurring transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid tag ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get recurring transactions by tag
+      tags:
+      - recurring
+  /recurring/due:
+    get:
+      consumes:
+      - application/json
+      description: Get all recurring transaction rules that are due on a specific
+        date
+      parameters:
+      - description: Date to check (YYYY-MM-DD format, defaults to today)
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of recurring transactions due on the date
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid date format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get recurring transactions due on a date
+      tags:
+      - recurring
+  /reports/monthly:
+    get:
+      consumes:
+      - application/json
+      description: Get a detailed monthly report with totals and breakdown by tags
+      parameters:
+      - description: Year-month in YYYY-MM format (defaults to current month)
+        in: query
+        name: ym
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monthly report data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid year-month format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get monthly report
+      tags:
+      - reports
+  /reports/monthly/totals:
+    get:
+      consumes:
+      - application/json
+      description: Get monthly income/expense totals and transaction count
+      parameters:
+      - description: Year-month in YYYY-MM format (defaults to current month)
+        in: query
+        name: ym
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monthly totals data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid year-month format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get monthly totals
+      tags:
+      - reports
+  /tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all available tags for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tags
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag for categorizing transactions
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tag created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new tag
+      tags:
+      - tags
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions for the authenticated user, optionally filtered
+        by date range
+      parameters:
+      - description: Start date (YYYY-MM-DD format)
+        in: query
+        name: from
+        type: string
+      - description: End date (YYYY-MM-DD format)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid date format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get transactions
+      tags:
+      - transactions
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction with optional tag associations
+      parameters:
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new transaction
+      tags:
+      - transactions
+  /transactions/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific transaction by its ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid transaction ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get transaction by ID
+      tags:
+      - transactions
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing transaction's note, tags, or soft delete it
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "204":
+          description: Transaction deleted successfully
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update a transaction
+      tags:
+      - transactions
+  /transactions/by-recurring/{recurring_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions that were created from a specific recurring
+        rule
+      parameters:
+      - description: Recurring rule ID
+        in: path
+        name: recurring_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid recurring ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get transactions by recurring ID
+      tags:
+      - transactions
+  /transactions/by-tag/{tag_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions associated with a specific tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: tag_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid tag ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get transactions by tag
+      tags:
+      - transactions
+  /transactions/purge:
+    post:
+      consumes:
+      - application/json
+      description: Permanently delete transactions that were soft deleted before a
+        specified date
+      parameters:
+      - description: Purge request data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.PurgeTransactionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Purge completed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Purge soft deleted transactions
+      tags:
+      - transactions
+securityDefinitions:
+  ApiKeyAuth:
+    description: API key for authentication
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Operations about transactions
+  name: transactions
+- description: Operations about tags
+  name: tags
+- description: Operations about recurring transactions
+  name: recurring
+- description: Operations about reports
+  name: reports
+- description: Administrative operations
+  name: admin
