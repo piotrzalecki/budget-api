@@ -1,5 +1,11 @@
 # budget-api
 
+## Documentation
+
+- [Backend Specification](docs/spec.md) - Complete API, database, and architecture documentation
+
+![Architecture](docs/img/architecture.svg)
+
 ## Authentication
 
 Every request must include header `X-API-Key: <value of $BUDGET_API_KEY>`.

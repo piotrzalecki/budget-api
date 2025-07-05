@@ -1,0 +1,57 @@
+graph TB
+    %% Client Layer
+    Client[Client SPA<br/>Vue.js Frontend]
+    
+    %% API Layer
+    API[Go API<br/>Gin Framework<br/>Port 8080]
+    
+    %% Database Layer
+    DB[(SQLite Database<br/>/data/budget.db)]
+    
+    %% Scheduler Components
+    Scheduler[Scheduler<br/>Go Library Function]
+    Timer[Systemd Timer<br/>Daily 2:05 AM]
+    
+    %% External Services
+    Journald[Systemd Journald<br/>Log Management]
+    
+    %% Connections
+    Client -->|HTTP/JSON<br/>X-API-Key Auth| API
+    API -->|CRUD Operations| DB
+    API -->|POST /admin/run-scheduler| Scheduler
+    Timer -->|curl /admin/run-scheduler| API
+    Scheduler -->|Database Operations| DB
+    API -->|JSON Logs| Journald
+    Scheduler -->|JSON Logs| Journald
+    
+    %% Styling
+    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef api fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef db fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef scheduler fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class Client client
+    class API api
+    class DB db
+    class Scheduler,Timer scheduler
+    class Journald external
+    
+    %% Subgraphs for grouping
+    subgraph "Frontend Layer"
+        Client
+    end
+    
+    subgraph "Backend Layer"
+        API
+        Scheduler
+    end
+    
+    subgraph "Data Layer"
+        DB
+    end
+    
+    subgraph "System Services"
+        Timer
+        Journald
+    end 

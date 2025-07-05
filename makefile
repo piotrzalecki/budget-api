@@ -21,7 +21,7 @@ run:
 	BUDGET_API_KEY=1234567890 go run ./cmd/budgetd
 
 ## Generate Swagger documentation
-docs:
+api-docs:
 	~/go/bin/swag init -g cmd/budgetd/main.go -o internal/docs
 
 ## Apply all up migrations
@@ -66,6 +66,18 @@ install-timer:
 	@echo "✅ Budget scheduler timer installed and enabled"
 	@echo "📊 Check status: systemctl status budget-scheduler.timer"
 	@echo "📋 View logs: journalctl -u budget-scheduler.service"
+
+## Generate architecture diagram from Mermaid
+## Usage: make appdocs (requires mmdc to be installed)
+appdocs:
+	@echo "Generating architecture diagram..."
+	@if command -v mmdc >/dev/null 2>&1; then \
+		mmdc -i docs/architecture.mmd -o docs/img/architecture.svg; \
+		echo "✅ Architecture diagram generated"; \
+	else \
+		echo "⚠️  mmdc not found. Install with: npm install -g @mermaid-js/mermaid-cli"; \
+		echo "📝 Manual SVG available at: docs/img/architecture.svg"; \
+	fi
 
 # ────────── Helper shortcuts for Postgres (optional) ──────────
 # Example: PG_DSN = "postgres://user:pw@host:5432/appdb?sslmode=disable"
