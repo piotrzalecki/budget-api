@@ -1,0 +1,7 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.1.6 # same version you installed
+    hooks:
+      - id: golangci-lint
+        args: [--out-format=tab] # optional extra CLI flags

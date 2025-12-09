@@ -1,0 +1,14 @@
+[Unit]
+Description=Run Budget Scheduler Daily at 2:05 AM
+Requires=budget-scheduler.service
+
+[Timer]
+# Run daily at 2:05 AM
+OnCalendar=*-*-* 02:05:00
+# Randomize start time within 5 minutes to avoid conflicts
+RandomizedDelaySec=300
+# Persist across reboots
+Persistent=true
+
+[Install]
+WantedBy=timers.target 

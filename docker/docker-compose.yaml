@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  budget-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      platforms:
+        - linux/arm64
+    container_name: budget-api
+    ports:
+      - "8080:8080"
+    environment:
+      - BUDGET_API_KEY=${BUDGET_API_KEY:-your-secret-api-key-here}
+      - DB_PATH=/data/budget.db
+      - TZ=${TZ:-Europe/London}
+      - PORT=8080
+      - GIN_MODE=release
+    volumes:
+      - budget_data:/data
+      - ../migrations:/app/migrations:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: >
+      sh -c "
+        echo 'Running database migrations...' &&
+        goose -dir /app/migrations sqlite3 /data/budget.db up &&
+        echo 'Starting budget API server...' &&
+        /app/budgetd
+      "
+
+volumes:
+  budget_data:
+    driver: local

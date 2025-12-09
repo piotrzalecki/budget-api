@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-anchor: middle; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 12px; text-anchor: middle; }
+      .client { fill: #e1f5fe; stroke: #01579b; stroke-width: 2; }
+      .api { fill: #f3e5f5; stroke: #4a148c; stroke-width: 2; }
+      .db { fill: #e8f5e8; stroke: #1b5e20; stroke-width: 2; }
+      .scheduler { fill: #fff3e0; stroke: #e65100; stroke-width: 2; }
+      .external { fill: #fce4ec; stroke: #880e4f; stroke-width: 2; }
+      .arrow { stroke: #333; stroke-width: 2; marker-end: url(#arrowhead); }
+      .label { font-family: Arial, sans-serif; font-size: 10px; text-anchor: middle; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#fafafa"/>
+  
+  <!-- Frontend Layer -->
+  <rect x="50" y="50" width="700" height="100" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="400" y="70" class="title">Frontend Layer</text>
+  
+  <!-- Client SPA -->
+  <rect x="100" y="80" width="120" height="60" class="client" rx="5"/>
+  <text x="160" y="105" class="title">Client SPA</text>
+  <text x="160" y="120" class="subtitle">Vue.js Frontend</text>
+  
+  <!-- Backend Layer -->
+  <rect x="50" y="180" width="700" height="200" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="400" y="200" class="title">Backend Layer</text>
+  
+  <!-- Go API -->
+  <rect x="100" y="220" width="120" height="80" class="api" rx="5"/>
+  <text x="160" y="245" class="title">Go API</text>
+  <text x="160" y="260" class="subtitle">Gin Framework</text>
+  <text x="160" y="275" class="subtitle">Port 8080</text>
+  
+  <!-- Scheduler -->
+  <rect x="300" y="220" width="120" height="80" class="scheduler" rx="5"/>
+  <text x="360" y="245" class="title">Scheduler</text>
+  <text x="360" y="260" class="subtitle">Go Library</text>
+  <text x="360" y="275" class="subtitle">Function</text>
+  
+  <!-- Systemd Timer -->
+  <rect x="500" y="220" width="120" height="80" class="scheduler" rx="5"/>
+  <text x="560" y="245" class="title">Systemd Timer</text>
+  <text x="560" y="260" class="subtitle">Daily 2:05 AM</text>
+  
+  <!-- Data Layer -->
+  <rect x="50" y="410" width="700" height="100" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="400" y="430" class="title">Data Layer</text>
+  
+  <!-- SQLite Database -->
+  <rect x="300" y="450" width="120" height="50" class="db" rx="5"/>
+  <text x="360" y="470" class="title">SQLite DB</text>
+  <text x="360" y="485" class="subtitle">/data/budget.db</text>
+  
+  <!-- System Services -->
+  <rect x="50" y="540" width="700" height="50" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="400" y="560" class="title">System Services</text>
+  
+  <!-- Journald -->
+  <rect x="300" y="550" width="120" height="30" class="external" rx="5"/>
+  <text x="360" y="570" class="title">Journald</text>
+  
+  <!-- Connections -->
+  <!-- Client to API -->
+  <line x1="220" y1="110" x2="100" y2="220" class="arrow"/>
+  <text x="160" y="160" class="label">HTTP/JSON</text>
+  <text x="160" y="175" class="label">X-API-Key Auth</text>
+  
+  <!-- API to DB -->
+  <line x1="160" y1="300" x2="300" y2="450" class="arrow"/>
+  <text x="230" y="375" class="label">CRUD Operations</text>
+  
+  <!-- API to Scheduler -->
+  <line x1="220" y1="260" x2="300" y2="260" class="arrow"/>
+  <text x="260" y="250" class="label">POST /admin/run-scheduler</text>
+  
+  <!-- Timer to API -->
+  <line x1="500" y1="260" x2="220" y2="260" class="arrow"/>
+  <text x="360" y="250" class="label">curl /admin/run-scheduler</text>
+  
+  <!-- Scheduler to DB -->
+  <line x1="360" y1="300" x2="360" y2="450" class="arrow"/>
+  <text x="380" y="375" class="label">Database Operations</text>
+  
+  <!-- API to Journald -->
+  <line x1="160" y1="300" x2="300" y2="550" class="arrow"/>
+  <text x="230" y="425" class="label">JSON Logs</text>
+  
+  <!-- Scheduler to Journald -->
+  <line x1="360" y1="300" x2="360" y2="550" class="arrow"/>
+  <text x="380" y="425" class="label">JSON Logs</text>
+</svg> 

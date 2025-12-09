@@ -1,0 +1,22 @@
+[Unit]
+Description=Run Budget Scheduler via local API
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS http://localhost:8080/api/v1/admin/run-scheduler \
+  -H "X-API-Key=${BUDGET_API_KEY}"
+
+# Optional: log to journald in pretty JSON
+StandardOutput=journal
+StandardError=journal
+
+# Environment variable for API key
+Environment=BUDGET_API_KEY
+
+# Restart policy for oneshot services
+Restart=no
+
+# Timeout settings
+TimeoutStartSec=30
+TimeoutStopSec=30 
