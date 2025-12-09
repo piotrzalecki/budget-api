@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -93,6 +95,29 @@ func main() {
 
 	// Create Gin router
 	router := gin.New()
+
+	// Add CORS middleware
+	config := cors.DefaultConfig()
+	// Allow requests from configured origins
+	corsOrigins := os.Getenv("CORS_ORIGINS")
+	if corsOrigins == "" {
+		// Default origins for development
+		config.AllowOrigins = []string{
+			"https://budget.lab.zalecki.uk",
+			"http://budget.lab.zalecki.uk", // For development
+		}
+	} else {
+		// Parse comma-separated origins from environment variable
+		config.AllowOrigins = strings.Split(corsOrigins, ",")
+		// Trim whitespace from each origin
+		for i, origin := range config.AllowOrigins {
+			config.AllowOrigins[i] = strings.TrimSpace(origin)
+		}
+	}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "X-API-Key", "Authorization"}
+	config.AllowCredentials = false
+	router.Use(cors.New(config))
 
 	// Add middleware
 	router.Use(gin.Recovery())

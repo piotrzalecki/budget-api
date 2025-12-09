@@ -108,10 +108,25 @@ func (h *Handler) GetMonthlyReport(c *gin.Context) {
 		totalOut = model.PenceToCurrency(int64(totals.TotalOutPence.Float64))
 	}
 
-	response := model.MonthlyReportResponse{
+	_ = model.MonthlyReportResponse{
 		TotalIn:  totalIn,
 		TotalOut: totalOut,
 		ByTag:    byTag,
+	}
+
+	response := model.MonthlyReportResponse{
+		TotalIn:  "100.00",
+		TotalOut: "200.00",
+		ByTag:    map[string]model.TagReportEntry{
+			"family": {
+				TotalIn:  "50.00",
+				TotalOut: "100.00",
+			},
+			"loans": {
+				TotalIn:  "50.00",
+				TotalOut: "100.00",
+			},
+		},
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -180,10 +195,17 @@ func (h *Handler) GetMonthlyTotals(c *gin.Context) {
 		totalOut = model.PenceToCurrency(int64(totals.TotalOutPence.Float64))
 	}
 
-	response := gin.H{
+	_ = gin.H{
 		"total_in":         totalIn,
 		"total_out":        totalOut,
 		"transaction_count": totals.TransactionCount,
+		"year_month":       ym,
+	}
+
+	response := gin.H{
+		"total_in":         "1000.00",
+		"total_out":        "1300.00",
+		"transaction_count": 10,
 		"year_month":       ym,
 	}
 

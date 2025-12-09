@@ -1,55 +1,49 @@
-# Build stage
-FROM --platform=linux/arm64 golang:1.23-alpine AS builder
+# Build stage (ARMv7)
+FROM --platform=linux/arm/v7 golang:1.23-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev
+# Toolchain for CGO + common deps
+RUN apk add --no-cache build-base ca-certificates tzdata git
 
-# Set working directory
 WORKDIR /app
-
-# Copy go mod files
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
-# Copy source code
+# Install goose for migrations
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN mkdir -p /root/go/bin && \
+    cp $(go env GOPATH)/bin/goose /root/go/bin/goose 2>/dev/null || \
+    cp /go/bin/goose /root/go/bin/goose 2>/dev/null || \
+    find /root -name "goose" -type f -executable -exec cp {} /root/go/bin/goose \; 2>/dev/null || \
+    find /go -name "goose" -type f -executable -exec cp {} /root/go/bin/goose \; 2>/dev/null
+
+# Copy source
 COPY . .
 
-# Build the application for ARM64
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -o budgetd ./cmd/budgetd
+# Compile for ARMv7 hard-float (Pi 32-bit)
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 \
+    go build -trimpath -ldflags="-s -w" -o /out/budgetd ./cmd/budgetd
 
-# Runtime stage
-FROM --platform=linux/arm64 alpine:latest
+# Runtime stage (ARMv7)
+FROM --platform=linux/arm/v7 alpine:3.20
 
-# Install runtime dependencies
 RUN apk --no-cache add ca-certificates tzdata curl sqlite
 
-# Create app user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+# Non-root user
+RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
 
-# Create app directory
 WORKDIR /app
+COPY --from=builder /out/budgetd /app/budgetd
+COPY --from=builder /app/migrations /app/migrations
+COPY --from=builder /root/go/bin/goose /app/goose
+COPY docker/entrypoint.sh /app/entrypoint.sh
 
-# Copy binary from builder stage
-COPY --from=builder /app/budgetd .
-
-# Copy migrations
-COPY --from=builder /app/migrations ./migrations
-
-# Create data directory
-RUN mkdir -p /data && chown -R appuser:appgroup /data /app
-
-# Switch to non-root user
+RUN chmod +x /app/entrypoint.sh && \
+    mkdir -p /data && chown -R appuser:appgroup /data /app
 USER appuser
 
-# Expose port
 EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8080/api/v1/health || exit 1
+  CMD curl -f http://localhost:8080/health || exit 1
 
-# Default command
-CMD ["./budgetd"] 
+CMD ["/app/entrypoint.sh"]
