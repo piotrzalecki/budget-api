@@ -57,6 +57,8 @@ import (
 // @tag.name admin
 // @tag.description Administrative operations
 
+var version = "dev"
+
 func main() {
 	// Initialize logger
 	logger, err := zap.NewProduction()
@@ -125,7 +127,7 @@ func main() {
 	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	// Setup routes
-	setupRoutes(router, logger, handlers)
+	setupRoutes(router, logger, handlers, version)
 
 	// Create HTTP server
 	port := os.Getenv("PORT")

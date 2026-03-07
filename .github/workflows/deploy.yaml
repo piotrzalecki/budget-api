@@ -34,6 +34,7 @@ jobs:
         run: |
           docker buildx build \
             --platform $PLATFORM \
+            --build-arg APP_VERSION=$IMAGE_TAG \
             -t pmz-budget-api:$IMAGE_TAG \
             -f docker/Dockerfile \
             .
@@ -78,6 +79,7 @@ jobs:
         run: |
           docker buildx build \
             --platform $PLATFORM \
+            --build-arg APP_VERSION=$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -f docker/Dockerfile \
             --push \

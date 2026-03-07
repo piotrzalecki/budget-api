@@ -18,7 +18,8 @@ test:
 	go test ./...
 
 run:
-	BUDGET_API_KEY=1234567890 CORS_ORIGINS="http://localhost:5173" go run ./cmd/budgetd
+	BUDGET_API_KEY=1234567890 CORS_ORIGINS="http://localhost:5173" \
+	go run -ldflags="-X main.version=$(shell cat version)" ./cmd/budgetd
 
 ## Generate Swagger documentation
 api-docs:

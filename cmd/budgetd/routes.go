@@ -13,12 +13,12 @@ import (
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
 
-func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handler) {
+func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handler, version string) {
 	// Swagger documentation
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Health endpoint (no auth required)
-	router.GET("/health", healthHandler(logger))
+	router.GET("/health", healthHandler(logger, version))
 
 	// API v1 routes (protected by API key)
 	v1 := router.Group("/api/v1")
@@ -94,14 +94,14 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Health status"
 // @Router /health [get]
-func healthHandler(logger *zap.Logger) gin.HandlerFunc {
+func healthHandler(logger *zap.Logger, version string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Debug("Health check requested")
 		c.JSON(http.StatusOK, gin.H{
 			"data": gin.H{
 				"status":    "healthy",
 				"timestamp": time.Now().UTC().Format(time.RFC3339),
-				"version":   "1.0.0",
+				"version":   version,
 			},
 			"error": nil,
 		})

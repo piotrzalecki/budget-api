@@ -20,8 +20,9 @@ RUN mkdir -p /root/go/bin && \
 COPY . .
 
 # Compile for ARMv7 hard-float (Pi 32-bit)
+ARG APP_VERSION=dev
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 \
-    go build -trimpath -ldflags="-s -w" -o /out/budgetd ./cmd/budgetd
+    go build -trimpath -ldflags="-s -w -X main.version=${APP_VERSION}" -o /out/budgetd ./cmd/budgetd
 
 # Runtime stage (ARMv7)
 FROM --platform=linux/arm/v7 alpine:3.20
