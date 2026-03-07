@@ -24,6 +24,11 @@ type CreateTagRequest struct {
 	Name string `json:"name" validate:"required,min=1,max=100"`
 }
 
+// UpdateTagRequest represents the request body for updating a tag
+type UpdateTagRequest struct {
+	Name string `json:"name" validate:"required,min=1,max=100"`
+}
+
 // CreateRecurringRequest represents the request body for creating a recurring rule
 type CreateRecurringRequest struct {
 	Amount        string   `json:"amount" validate:"required,currency"`

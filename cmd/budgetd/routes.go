@@ -37,6 +37,8 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 		// Tag routes with validation
 		v1.POST("/tags", handler.ValidateRequest[model.CreateTagRequest](), handlers.CreateTag)
 		v1.GET("/tags", handlers.GetTags)
+		v1.PATCH("/tags/:id", handler.ValidateRequest[model.UpdateTagRequest](), handlers.UpdateTag)
+		v1.DELETE("/tags/:id", handlers.DeleteTag)
 		
 		// Recurring routes with validation
 		v1.POST("/recurring", handler.ValidateRequest[model.CreateRecurringRequest](), handlers.CreateRecurring)

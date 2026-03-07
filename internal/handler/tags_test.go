@@ -79,10 +79,33 @@ func (m *mockRepo) UpdateTransaction(ctx context.Context, arg repo.UpdateTransac
 func (m *mockRepo) SoftDeleteTransaction(ctx context.Context, id int64) error { panic("not implemented") }
 func (m *mockRepo) HardDeleteTransaction(ctx context.Context, id int64) error { panic("not implemented") }
 func (m *mockRepo) PurgeSoftDeletedTransactions(ctx context.Context, deletedAt sql.NullTime) error { panic("not implemented") }
-func (m *mockRepo) GetTagByID(ctx context.Context, id int64) (repo.Tag, error) { panic("not implemented") }
+func (m *mockRepo) GetTagByID(ctx context.Context, id int64) (repo.Tag, error) {
+	for _, t := range m.tags {
+		if t.ID == id {
+			return t, nil
+		}
+	}
+	return repo.Tag{}, errors.New("not found")
+}
 func (m *mockRepo) GetTagByName(ctx context.Context, name string) (repo.Tag, error) { panic("not implemented") }
-func (m *mockRepo) UpdateTag(ctx context.Context, arg repo.UpdateTagParams) (repo.Tag, error) { panic("not implemented") }
-func (m *mockRepo) DeleteTag(ctx context.Context, id int64) error { panic("not implemented") }
+func (m *mockRepo) UpdateTag(ctx context.Context, arg repo.UpdateTagParams) (repo.Tag, error) {
+	for i, t := range m.tags {
+		if t.ID == arg.ID {
+			m.tags[i].Name = arg.Name
+			return m.tags[i], nil
+		}
+	}
+	return repo.Tag{}, errors.New("not found")
+}
+func (m *mockRepo) DeleteTag(ctx context.Context, id int64) error {
+	for i, t := range m.tags {
+		if t.ID == id {
+			m.tags = append(m.tags[:i], m.tags[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
 func (m *mockRepo) CreateTransactionTag(ctx context.Context, arg repo.CreateTransactionTagParams) error { panic("not implemented") }
 func (m *mockRepo) GetTransactionTags(ctx context.Context, transactionID int64) ([]repo.Tag, error) { panic("not implemented") }
 func (m *mockRepo) DeleteTransactionTag(ctx context.Context, arg repo.DeleteTransactionTagParams) error { panic("not implemented") }
@@ -127,7 +150,7 @@ func TestCreateTag(t *testing.T) {
 			requestBody: map[string]interface{}{
 				"name": "groceries",
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusCreated,
 			expectedError:  false,
 		},
 		{
@@ -175,7 +198,96 @@ func TestCreateTag(t *testing.T) {
 				data, ok := response["data"].(map[string]interface{})
 				assert.True(t, ok)
 				assert.Contains(t, data, "id")
+				assert.Contains(t, data, "name")
 			}
+		})
+	}
+}
+
+func TestUpdateTag(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	mock := &mockRepo{tags: []repo.Tag{{ID: 1, Name: "groceries"}}}
+	h := NewHandler(mock, zap.NewNop())
+	router := gin.New()
+	router.PATCH("/tags/:id", ValidateRequest[model.UpdateTagRequest](), h.UpdateTag)
+
+	tests := []struct {
+		name           string
+		id             string
+		requestBody    map[string]interface{}
+		expectedStatus int
+	}{
+		{
+			name:           "valid update",
+			id:             "1",
+			requestBody:    map[string]interface{}{"name": "food"},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "tag not found",
+			id:             "99",
+			requestBody:    map[string]interface{}{"name": "food"},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "invalid id",
+			id:             "abc",
+			requestBody:    map[string]interface{}{"name": "food"},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "missing name",
+			id:             "1",
+			requestBody:    map[string]interface{}{},
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, _ := json.Marshal(tt.requestBody)
+			req := httptest.NewRequest("PATCH", "/tags/"+tt.id, bytes.NewBuffer(body))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			if tt.expectedStatus == http.StatusOK {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+				data, ok := response["data"].(map[string]interface{})
+				assert.True(t, ok)
+				assert.Contains(t, data, "id")
+				assert.Contains(t, data, "name")
+			}
+		})
+	}
+}
+
+func TestDeleteTag(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name           string
+		id             string
+		expectedStatus int
+	}{
+		{name: "valid delete", id: "1", expectedStatus: http.StatusNoContent},
+		{name: "tag not found", id: "99", expectedStatus: http.StatusNotFound},
+		{name: "invalid id", id: "abc", expectedStatus: http.StatusBadRequest},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockRepo{tags: []repo.Tag{{ID: 1, Name: "groceries"}}}
+			h := NewHandler(mock, zap.NewNop())
+			router := gin.New()
+			router.DELETE("/tags/:id", h.DeleteTag)
+
+			req := httptest.NewRequest("DELETE", "/tags/"+tt.id, nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			assert.Equal(t, tt.expectedStatus, w.Code)
 		})
 	}
 }

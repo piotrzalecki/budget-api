@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.12
+
+- Added `PATCH /tags/:id` and `DELETE /tags/:id` endpoints
+- Fixed `POST /tags` to return `201 Created` with full tag object (`id` + `name`)
+
 ## 0.0.11
 
 - Version is now injected at build time via Go ldflags (`-X main.version=`) instead of being hardcoded

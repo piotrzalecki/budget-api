@@ -2,9 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"github.com/piotrzalecki/budget-api/internal/repo"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
 
@@ -42,12 +44,115 @@ func (h *Handler) CreateTag(c *gin.Context) {
 		return
 	}
 	
-	c.JSON(http.StatusOK, gin.H{
-		"data": gin.H{
-			"id": tag.ID,
-		},
+	c.JSON(http.StatusCreated, gin.H{
+		"data":  model.TagResponse{ID: tag.ID, Name: tag.Name},
 		"error": nil,
 	})
+}
+
+// UpdateTag handles PATCH /api/v1/tags/:id
+// @Summary Update a tag
+// @Description Update an existing tag's name
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Param id path int true "Tag ID"
+// @Param tag body model.UpdateTagRequest true "Tag update data"
+// @Success 200 {object} map[string]interface{} "Tag updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 404 {object} map[string]interface{} "Tag not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /tags/{id} [patch]
+func (h *Handler) UpdateTag(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid tag ID",
+			"data":  nil,
+		})
+		return
+	}
+
+	request, ok := GetValidatedRequest[model.UpdateTagRequest](c)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to get validated request",
+			"data":  nil,
+		})
+		return
+	}
+
+	_, err = h.repo.GetTagByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "tag not found",
+			"data":  nil,
+		})
+		return
+	}
+
+	tag, err := h.repo.UpdateTag(c.Request.Context(), repo.UpdateTagParams{ID: id, Name: request.Name})
+	if err != nil {
+		h.logger.Error("failed to update tag", zap.Error(err), zap.Int64("id", id))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to update tag: " + err.Error(),
+			"data":  nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  model.TagResponse{ID: tag.ID, Name: tag.Name},
+		"error": nil,
+	})
+}
+
+// DeleteTag handles DELETE /api/v1/tags/:id
+// @Summary Delete a tag
+// @Description Delete an existing tag
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Param id path int true "Tag ID"
+// @Success 204 "Tag deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid tag ID"
+// @Failure 404 {object} map[string]interface{} "Tag not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security ApiKeyAuth
+// @Router /tags/{id} [delete]
+func (h *Handler) DeleteTag(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid tag ID",
+			"data":  nil,
+		})
+		return
+	}
+
+	_, err = h.repo.GetTagByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "tag not found",
+			"data":  nil,
+		})
+		return
+	}
+
+	err = h.repo.DeleteTag(c.Request.Context(), id)
+	if err != nil {
+		h.logger.Error("failed to delete tag", zap.Error(err), zap.Int64("id", id))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete tag: " + err.Error(),
+			"data":  nil,
+		})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 // GetTags handles GET /api/v1/tags
