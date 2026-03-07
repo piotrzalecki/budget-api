@@ -21,9 +21,10 @@ run:
 	BUDGET_API_KEY=1234567890 CORS_ORIGINS="http://localhost:5173" \
 	go run -ldflags="-X main.version=$(shell cat version)" ./cmd/budgetd
 
-## Generate Swagger documentation
+## Generate Swagger documentation and API.md
 api-docs:
 	~/go/bin/swag init -g cmd/budgetd/main.go -o internal/docs
+	go run ./scripts/gen-api-md
 
 ## Apply all up migrations
 migrate:
