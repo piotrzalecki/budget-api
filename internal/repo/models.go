@@ -28,6 +28,14 @@ type RecurringTag struct {
 	TagID       int64
 }
 
+type Session struct {
+	ID        int64
+	UserID    int64
+	Token     string
+	ExpiresAt sql.NullTime
+	CreatedAt sql.NullTime
+}
+
 type Setting struct {
 	Key   string
 	Value string
@@ -59,4 +67,5 @@ type User struct {
 	Email     string
 	PwHash    string
 	CreatedAt sql.NullTime
+	IsService bool
 }

@@ -182,6 +182,10 @@ func (m *mockTransactionRepo) UpdateSetting(ctx context.Context, arg repo.Update
 func (m *mockTransactionRepo) DeleteSetting(ctx context.Context, key string) error { panic("not implemented") }
 func (m *mockTransactionRepo) GetMonthlyReport(ctx context.Context, arg repo.GetMonthlyReportParams) ([]repo.GetMonthlyReportRow, error) { panic("not implemented") }
 func (m *mockTransactionRepo) GetMonthlyTotals(ctx context.Context, arg repo.GetMonthlyTotalsParams) (repo.GetMonthlyTotalsRow, error) { panic("not implemented") }
+func (m *mockTransactionRepo) CreateSession(ctx context.Context, arg repo.CreateSessionParams) (repo.Session, error) { panic("not implemented") }
+func (m *mockTransactionRepo) GetSessionByToken(ctx context.Context, token string) (repo.GetSessionByTokenRow, error) { panic("not implemented") }
+func (m *mockTransactionRepo) DeleteSession(ctx context.Context, token string) error { panic("not implemented") }
+func (m *mockTransactionRepo) DeleteAllSessionsByUserID(ctx context.Context, userID int64) error { panic("not implemented") }
 
 func TestCreateTransaction(t *testing.T) {
 	gin.SetMode(gin.TestMode)

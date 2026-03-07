@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.0
+
+- Added session-based authentication: `POST /api/v1/auth/login` and `POST /api/v1/auth/logout`
+- `/api/v1/*` routes now require `Authorization: Bearer <token>` instead of `X-API-Key`
+- `/admin/*` keeps `X-API-Key` authentication (used by systemd timer)
+- Added user management endpoints: `GET/POST /api/v1/users`, `GET/PATCH/DELETE /api/v1/users/:id`
+- Sessions stored in new `sessions` DB table (migration 003); supports logout/revocation
+- Added `is_service` flag to `users` table for permanent service accounts
+- Service user seeded on startup via `SERVICE_USER_EMAIL` + `SERVICE_USER_TOKEN` env vars (permanent session, idempotent)
+- Passwords hashed with bcrypt
+
 ## 0.0.12
 
 - Added `PATCH /tags/:id` and `DELETE /tags/:id` endpoints

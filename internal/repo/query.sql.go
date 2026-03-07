@@ -74,6 +74,31 @@ func (q *Queries) CreateRecurringTag(ctx context.Context, arg CreateRecurringTag
 	return err
 }
 
+const createSession = `-- name: CreateSession :one
+INSERT INTO sessions (user_id, token, expires_at)
+VALUES (?, ?, ?)
+RETURNING id, user_id, token, expires_at, created_at
+`
+
+type CreateSessionParams struct {
+	UserID    int64
+	Token     string
+	ExpiresAt sql.NullTime
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
+	row := q.db.QueryRowContext(ctx, createSession, arg.UserID, arg.Token, arg.ExpiresAt)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createSetting = `-- name: CreateSetting :one
 INSERT INTO settings (key, value)
 VALUES (?, ?)
@@ -159,24 +184,26 @@ func (q *Queries) CreateTransactionTag(ctx context.Context, arg CreateTransactio
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, pw_hash)
-VALUES (?, ?)
-RETURNING id, email, pw_hash, created_at
+INSERT INTO users (email, pw_hash, is_service)
+VALUES (?, ?, ?)
+RETURNING id, email, pw_hash, created_at, is_service
 `
 
 type CreateUserParams struct {
-	Email  string
-	PwHash string
+	Email     string
+	PwHash    string
+	IsService bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.PwHash)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.PwHash, arg.IsService)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
 		&i.PwHash,
 		&i.CreatedAt,
+		&i.IsService,
 	)
 	return i, err
 }
@@ -188,6 +215,16 @@ WHERE recurring_id = ?
 
 func (q *Queries) DeleteAllRecurringTags(ctx context.Context, recurringID int64) error {
 	_, err := q.db.ExecContext(ctx, deleteAllRecurringTags, recurringID)
+	return err
+}
+
+const deleteAllSessionsByUserID = `-- name: DeleteAllSessionsByUserID :exec
+DELETE FROM sessions
+WHERE user_id = ?
+`
+
+func (q *Queries) DeleteAllSessionsByUserID(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAllSessionsByUserID, userID)
 	return err
 }
 
@@ -223,6 +260,16 @@ type DeleteRecurringTagParams struct {
 
 func (q *Queries) DeleteRecurringTag(ctx context.Context, arg DeleteRecurringTagParams) error {
 	_, err := q.db.ExecContext(ctx, deleteRecurringTag, arg.RecurringID, arg.TagID)
+	return err
+}
+
+const deleteSession = `-- name: DeleteSession :exec
+DELETE FROM sessions
+WHERE token = ?
+`
+
+func (q *Queries) DeleteSession(ctx context.Context, token string) error {
+	_, err := q.db.ExecContext(ctx, deleteSession, token)
 	return err
 }
 
@@ -493,6 +540,42 @@ func (q *Queries) GetRecurringTags(ctx context.Context, recurringID int64) ([]Ta
 	return items, nil
 }
 
+const getSessionByToken = `-- name: GetSessionByToken :one
+SELECT s.id, s.user_id, s.token, s.expires_at, s.created_at,
+       u.id as u_id, u.email as u_email, u.is_service as u_is_service
+FROM sessions s
+JOIN users u ON s.user_id = u.id
+WHERE s.token = ?
+  AND (s.expires_at IS NULL OR s.expires_at > CURRENT_TIMESTAMP)
+`
+
+type GetSessionByTokenRow struct {
+	ID         int64
+	UserID     int64
+	Token      string
+	ExpiresAt  sql.NullTime
+	CreatedAt  sql.NullTime
+	UID        int64
+	UEmail     string
+	UIsService bool
+}
+
+func (q *Queries) GetSessionByToken(ctx context.Context, token string) (GetSessionByTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, getSessionByToken, token)
+	var i GetSessionByTokenRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UID,
+		&i.UEmail,
+		&i.UIsService,
+	)
+	return i, err
+}
+
 const getSetting = `-- name: GetSetting :one
 SELECT "key", value FROM settings
 WHERE key = ?
@@ -658,7 +741,7 @@ func (q *Queries) GetTransactionsByTag(ctx context.Context, tagID int64) ([]Tran
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, pw_hash, created_at FROM users
+SELECT id, email, pw_hash, created_at, is_service FROM users
 WHERE email = ?
 `
 
@@ -670,12 +753,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.PwHash,
 		&i.CreatedAt,
+		&i.IsService,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, pw_hash, created_at FROM users
+SELECT id, email, pw_hash, created_at, is_service FROM users
 WHERE id = ?
 `
 
@@ -687,6 +771,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.Email,
 		&i.PwHash,
 		&i.CreatedAt,
+		&i.IsService,
 	)
 	return i, err
 }
@@ -933,7 +1018,7 @@ func (q *Queries) ListTransactionsByDateRange(ctx context.Context, userID int64)
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, pw_hash, created_at FROM users
+SELECT id, email, pw_hash, created_at, is_service FROM users
 ORDER BY created_at DESC
 `
 
@@ -951,6 +1036,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.PwHash,
 			&i.CreatedAt,
+			&i.IsService,
 		); err != nil {
 			return nil, err
 		}
@@ -1139,7 +1225,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET email = ?, pw_hash = ?
 WHERE id = ?
-RETURNING id, email, pw_hash, created_at
+RETURNING id, email, pw_hash, created_at, is_service
 `
 
 type UpdateUserParams struct {
@@ -1156,6 +1242,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Email,
 		&i.PwHash,
 		&i.CreatedAt,
+		&i.IsService,
 	)
 	return i, err
 }

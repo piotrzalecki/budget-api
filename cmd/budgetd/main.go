@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 
 	_ "github.com/piotrzalecki/budget-api/internal/docs" // This is the generated docs
 	"github.com/piotrzalecki/budget-api/internal/handler"
@@ -87,6 +88,9 @@ func main() {
 	// Initialize repository
 	repository := repo.NewRepository(db)
 
+	// Seed service user if env vars are set
+	seedServiceUser(context.Background(), repository, logger)
+
 	// Initialize handlers with dependencies
 	handlers := handler.NewHandler(repository, logger)
 
@@ -127,7 +131,7 @@ func main() {
 	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	// Setup routes
-	setupRoutes(router, logger, handlers, version)
+	setupRoutes(router, logger, handlers, repository, version)
 
 	// Create HTTP server
 	port := os.Getenv("PORT")
@@ -167,4 +171,50 @@ func main() {
 	}
 
 	logger.Info("Server exited")
+}
+
+// seedServiceUser creates (or updates) a permanent service user and session
+// when SERVICE_USER_EMAIL and SERVICE_USER_TOKEN are set.
+func seedServiceUser(ctx context.Context, r repo.Repository, logger *zap.Logger) {
+	email := os.Getenv("SERVICE_USER_EMAIL")
+	token := os.Getenv("SERVICE_USER_TOKEN")
+	if email == "" || token == "" {
+		return
+	}
+
+	user, err := r.GetUserByEmail(ctx, email)
+	if err != nil {
+		// User doesn't exist yet — create with a placeholder password hash
+		hash, hashErr := bcrypt.GenerateFromPassword([]byte(token), bcrypt.DefaultCost)
+		if hashErr != nil {
+			logger.Error("seedServiceUser: failed to hash token", zap.Error(hashErr))
+			return
+		}
+		user, err = r.CreateUser(ctx, repo.CreateUserParams{
+			Email:     email,
+			PwHash:    string(hash),
+			IsService: true,
+		})
+		if err != nil {
+			logger.Error("seedServiceUser: failed to create user", zap.Error(err))
+			return
+		}
+		logger.Info("seedServiceUser: created service user", zap.String("email", email))
+	}
+
+	// Upsert permanent session: delete old sessions, create a new permanent one
+	if err := r.DeleteAllSessionsByUserID(ctx, user.ID); err != nil {
+		logger.Error("seedServiceUser: failed to clear sessions", zap.Error(err))
+		return
+	}
+	_, err = r.CreateSession(ctx, repo.CreateSessionParams{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: sql.NullTime{Valid: false}, // permanent
+	})
+	if err != nil {
+		logger.Error("seedServiceUser: failed to create session", zap.Error(err))
+		return
+	}
+	logger.Info("seedServiceUser: seeded permanent session", zap.String("email", email))
 } 

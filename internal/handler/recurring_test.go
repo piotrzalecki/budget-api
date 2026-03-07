@@ -274,6 +274,26 @@ func (m *MockRepository) GetMonthlyTotals(ctx context.Context, arg repo.GetMonth
 	return args.Get(0).(repo.GetMonthlyTotalsRow), args.Error(1)
 }
 
+func (m *MockRepository) CreateSession(ctx context.Context, arg repo.CreateSessionParams) (repo.Session, error) {
+	args := m.Called(ctx, arg)
+	return args.Get(0).(repo.Session), args.Error(1)
+}
+
+func (m *MockRepository) GetSessionByToken(ctx context.Context, token string) (repo.GetSessionByTokenRow, error) {
+	args := m.Called(ctx, token)
+	return args.Get(0).(repo.GetSessionByTokenRow), args.Error(1)
+}
+
+func (m *MockRepository) DeleteSession(ctx context.Context, token string) error {
+	args := m.Called(ctx, token)
+	return args.Error(0)
+}
+
+func (m *MockRepository) DeleteAllSessionsByUserID(ctx context.Context, userID int64) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
 // TestCreateRecurring tests the CreateRecurring handler
 func TestCreateRecurring(t *testing.T) {
 	// Set Gin to test mode

@@ -104,7 +104,12 @@ func main() {
 	w("`http://%s%s`\n\n", spec.Host, spec.BasePath)
 
 	w("## Authentication\n\n")
-	w("All `/api/v1/*` endpoints require: `X-API-Key: <your-api-key>` header.\n\n")
+	w("| Scope | Method | Header |\n")
+	w("|-------|--------|--------|\n")
+	w("| `/api/v1/*` | Session token | `Authorization: Bearer <token>` |\n")
+	w("| `/admin/*` | Static API key | `X-API-Key: <your-api-key>` |\n")
+	w("| `POST /api/v1/auth/login` | None (public) | — |\n\n")
+	w("Obtain a token via `POST /api/v1/auth/login`. Tokens expire after 30 days. Service accounts use a permanent token seeded from `SERVICE_USER_TOKEN` env var.\n\n")
 
 	w("## Domain Conventions\n\n")
 	w("- **Amounts**: string of integer pence. `\"1050\"` = £10.50. Negative = expense, positive = income.\n")
@@ -165,10 +170,7 @@ func main() {
 		w("| Method | Path | Auth | Description |\n")
 		w("|--------|------|------|-------------|\n")
 		for _, e := range eps {
-			auth := ""
-			if e.secured {
-				auth = "X-API-Key"
-			}
+			auth := authLabel(e.path, e.secured)
 			w("| `%s` | `%s` | %s | %s |\n", e.method, e.path, auth, e.summary)
 		}
 		w("\n")
@@ -261,11 +263,39 @@ func main() {
 
 	// ── Example ──────────────────────────────────────────────────────────────
 	w("## Example\n\n")
+	w("### Login and make a request\n\n")
+	w("**1. Login**\n\n")
+	w("```http\n")
+	w("POST /api/v1/auth/login\n")
+	w("Content-Type: application/json\n\n")
+	w("{\n")
+	w("  \"email\": \"user@example.com\",\n")
+	w("  \"password\": \"yourpassword\"\n")
+	w("}\n")
+	w("```\n\n")
+	w("**Response** `200 OK`\n\n")
+	w("```json\n")
+	w("{\n")
+	w("  \"data\": {\n")
+	w("    \"token\": \"a3f8c2...\",\n")
+	w("    \"expires_at\": \"2026-04-06T10:00:00Z\",\n")
+	w("    \"user_id\": 1,\n")
+	w("    \"email\": \"user@example.com\"\n")
+	w("  },\n")
+	w("  \"error\": null\n")
+	w("}\n")
+	w("```\n\n")
+	w("**2. Use the token**\n\n")
+	w("```http\n")
+	w("GET /api/v1/transactions\n")
+	w("Authorization: Bearer a3f8c2...\n")
+	w("```\n\n")
+	w("---\n\n")
 	w("### Create a transaction\n\n")
 	w("**Request**\n\n")
 	w("```http\n")
 	w("POST /api/v1/transactions\n")
-	w("X-API-Key: your-api-key\n")
+	w("Authorization: Bearer a3f8c2...\n")
 	w("Content-Type: application/json\n\n")
 	w("{\n")
 	w("  \"amount\": \"-1050\",\n")
@@ -288,6 +318,20 @@ func main() {
 	w("```\n")
 
 	fmt.Println("API.md generated successfully")
+}
+
+// authLabel returns the auth column value for an endpoint based on its path.
+func authLabel(path string, secured bool) string {
+	if strings.HasPrefix(path, "/admin/") {
+		return "X-API-Key"
+	}
+	if path == "/auth/login" {
+		return "None"
+	}
+	if secured {
+		return "Bearer"
+	}
+	return ""
 }
 
 func capitalize(s string) string {
