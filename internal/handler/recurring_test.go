@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -281,7 +283,7 @@ func TestCreateRecurring(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test request
 	request := model.CreateRecurringRequest{
@@ -341,7 +343,7 @@ func TestGetRecurring(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test HTTP request
 	req, _ := http.NewRequest("GET", "/api/v1/recurring", nil)
@@ -376,7 +378,7 @@ func TestListActiveRecurring(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test HTTP request
 	req, _ := http.NewRequest("GET", "/api/v1/recurring/active", nil)
@@ -411,7 +413,7 @@ func TestToggleRecurringActive(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test HTTP request
 	req, _ := http.NewRequest("PATCH", "/api/v1/recurring/1/toggle", nil)
@@ -448,7 +450,7 @@ func TestGetRecurringDueOnDate(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test HTTP request
 	req, _ := http.NewRequest("GET", "/api/v1/recurring/due?date=2025-07-01", nil)
@@ -483,7 +485,7 @@ func TestGetRecurringDueOnDateWithoutDate(t *testing.T) {
 	mockRepo := new(MockRepository)
 	
 	// Create a handler with the mock repository
-	handler := NewHandler(mockRepo)
+	handler := NewHandler(mockRepo, zap.NewNop())
 
 	// Create a test HTTP request
 	req, _ := http.NewRequest("GET", "/api/v1/recurring/due", nil)
@@ -579,7 +581,7 @@ func TestGetMonthlyReport(t *testing.T) {
 			}
 
 			// Create handler
-			handler := NewHandler(mockRepo)
+			handler := NewHandler(mockRepo, zap.NewNop())
 
 			// Create request
 			req, _ := http.NewRequest("GET", "/api/v1/reports/monthly"+tt.queryParams, nil)
@@ -658,7 +660,7 @@ func TestGetMonthlyTotals(t *testing.T) {
 			}
 
 			// Create handler
-			handler := NewHandler(mockRepo)
+			handler := NewHandler(mockRepo, zap.NewNop())
 
 			// Create request
 			req, _ := http.NewRequest("GET", "/api/v1/reports/monthly/totals"+tt.queryParams, nil)

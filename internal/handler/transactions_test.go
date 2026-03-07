@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -190,7 +192,7 @@ func TestCreateTransaction(t *testing.T) {
 		},
 		transactionTags: make(map[int64][]repo.Tag),
 	}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.POST("/transactions", ValidateRequest[model.CreateTransactionRequest](), h.CreateTransaction)
 
@@ -292,7 +294,7 @@ func TestGetTransactions(t *testing.T) {
 		},
 		transactionTags: make(map[int64][]repo.Tag),
 	}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.GET("/transactions", h.GetTransactions)
 
@@ -392,7 +394,7 @@ func TestUpdateTransaction(t *testing.T) {
 				},
 				transactionTags: make(map[int64][]repo.Tag),
 			}
-			h := NewHandler(mock)
+			h := NewHandler(mock, zap.NewNop())
 			router := gin.New()
 			router.PATCH("/transactions/:id", ValidateRequest[model.UpdateTransactionRequest](), h.UpdateTransaction)
 

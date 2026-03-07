@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"github.com/piotrzalecki/budget-api/internal/repo"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
@@ -51,6 +52,7 @@ func (h *Handler) GetMonthlyReport(c *gin.Context) {
 	}
 	totals, err := h.repo.GetMonthlyTotals(c.Request.Context(), totalsParams)
 	if err != nil {
+		h.logger.Error("failed to fetch monthly totals", zap.Error(err), zap.String("ym", ym))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch monthly totals",
 			"data":  nil,
@@ -65,6 +67,7 @@ func (h *Handler) GetMonthlyReport(c *gin.Context) {
 	}
 	reportRows, err := h.repo.GetMonthlyReport(c.Request.Context(), reportParams)
 	if err != nil {
+		h.logger.Error("failed to fetch monthly report", zap.Error(err), zap.String("ym", ym))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch monthly report",
 			"data":  nil,
@@ -177,6 +180,7 @@ func (h *Handler) GetMonthlyTotals(c *gin.Context) {
 	}
 	totals, err := h.repo.GetMonthlyTotals(c.Request.Context(), params)
 	if err != nil {
+		h.logger.Error("failed to fetch monthly totals", zap.Error(err), zap.String("ym", ym))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch monthly totals",
 			"data":  nil,

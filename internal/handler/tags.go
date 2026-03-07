@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
 
@@ -33,8 +34,7 @@ func (h *Handler) CreateTag(c *gin.Context) {
 	// Create tag using the repository
 	tag, err := h.repo.CreateTag(c.Request.Context(), request.Name)
 	if err != nil {
-		// Handle specific error cases
-		// TODO: Add proper error handling for duplicate names, etc.
+		h.logger.Error("failed to create tag", zap.Error(err), zap.String("name", request.Name))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to create tag: " + err.Error(),
 			"data":  nil,
@@ -64,6 +64,7 @@ func (h *Handler) GetTags(c *gin.Context) {
 	// Get tags from the repository
 	tags, err := h.repo.ListTags(c.Request.Context())
 	if err != nil {
+		h.logger.Error("failed to list tags", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get tags: " + err.Error(),
 			"data":  nil,

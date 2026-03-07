@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -110,7 +112,7 @@ func (m *mockRepo) GetMonthlyTotals(ctx context.Context, arg repo.GetMonthlyTota
 func TestCreateTag(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mock := &mockRepo{}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.POST("/tags", ValidateRequest[model.CreateTagRequest](), h.CreateTag)
 
@@ -181,7 +183,7 @@ func TestCreateTag(t *testing.T) {
 func TestGetTags(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mock := &mockRepo{}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.GET("/tags", h.GetTags)
 

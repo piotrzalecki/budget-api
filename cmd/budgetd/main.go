@@ -86,7 +86,7 @@ func main() {
 	repository := repo.NewRepository(db)
 
 	// Initialize handlers with dependencies
-	handlers := handler.NewHandler(repository)
+	handlers := handler.NewHandler(repository, logger)
 
 	// Set Gin mode based on environment
 	if os.Getenv("GIN_MODE") == "" {
