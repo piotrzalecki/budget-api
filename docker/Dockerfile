@@ -1,5 +1,5 @@
 # Build stage (ARMv7)
-FROM --platform=linux/arm/v7 golang:1.23-alpine AS builder
+FROM --platform=linux/arm/v7 golang:1.24-alpine AS builder
 
 # Toolchain for CGO + common deps
 RUN apk add --no-cache build-base ca-certificates tzdata git
