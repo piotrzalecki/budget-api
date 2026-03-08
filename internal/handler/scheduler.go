@@ -22,14 +22,6 @@ import (
 // @Security ApiKeyAuth
 // @Router /admin/run-scheduler [post]
 func (h *Handler) RunScheduler(c *gin.Context) {
-	// Get logger from context or create a new one
-	logger := zap.L()
-	if log, exists := c.Get("logger"); exists {
-		if l, ok := log.(*zap.Logger); ok {
-			logger = l
-		}
-	}
-
 	// Get database connection from repository
 	db := h.repo.GetDB()
 	if db == nil {
@@ -42,9 +34,9 @@ func (h *Handler) RunScheduler(c *gin.Context) {
 
 	// Run the scheduler with today's date
 	today := time.Now().UTC().Truncate(24 * time.Hour)
-	processed, err := scheduler.RunScheduler(c.Request.Context(), db, today, logger)
+	processed, err := scheduler.RunScheduler(c.Request.Context(), db, today, h.logger)
 	if err != nil {
-		logger.Error("scheduler failed", zap.Error(err))
+		h.logger.Error("scheduler failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "scheduler execution failed",
 			"data":  nil,

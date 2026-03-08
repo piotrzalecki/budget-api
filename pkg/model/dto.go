@@ -24,6 +24,11 @@ type CreateTagRequest struct {
 	Name string `json:"name" validate:"required,min=1,max=100"`
 }
 
+// UpdateTagRequest represents the request body for updating a tag
+type UpdateTagRequest struct {
+	Name string `json:"name" validate:"required,min=1,max=100"`
+}
+
 // CreateRecurringRequest represents the request body for creating a recurring rule
 type CreateRecurringRequest struct {
 	Amount        string   `json:"amount" validate:"required,currency"`
@@ -113,4 +118,39 @@ type ErrorResponse struct {
 // PurgeTransactionsRequest represents the request body for purging soft deleted transactions
 type PurgeTransactionsRequest struct {
 	CutoffDate string `json:"cutoff_date" validate:"required,date"`
+}
+
+// LoginRequest represents the request body for user login
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=1"`
+}
+
+// LoginResponse represents the response for a successful login
+type LoginResponse struct {
+	Token     string     `json:"token"`
+	ExpiresAt *time.Time `json:"expires_at"`
+	UserID    int64      `json:"user_id"`
+	Email     string     `json:"email"`
+}
+
+// CreateUserRequest represents the request body for creating a user
+type CreateUserRequest struct {
+	Email     string `json:"email" validate:"required,email"`
+	Password  string `json:"password" validate:"required,min=8"`
+	IsService bool   `json:"is_service"`
+}
+
+// UpdateUserRequest represents the request body for updating a user
+type UpdateUserRequest struct {
+	Email    *string `json:"email,omitempty" validate:"omitempty,email"`
+	Password *string `json:"password,omitempty" validate:"omitempty,min=8"`
+}
+
+// UserResponse represents a user in API responses
+type UserResponse struct {
+	ID        int64      `json:"id"`
+	Email     string     `json:"email"`
+	IsService bool       `json:"is_service"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 } 

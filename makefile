@@ -11,18 +11,21 @@ DB_STRING  ?= $(CURDIR)/dev.db        # override in CI/Prod
 
 # ────────── Targets ───────────────────────────────────────────
 
-.PHONY: migrate migrate-down new-migration generate db-status test install-timer docs
+.PHONY: migrate migrate-down migrate-dev new-migration generate db-status test install-timer docs
 
 ## Run unit tests
 test:
 	go test ./...
 
 run:
-	BUDGET_API_KEY=1234567890 go run ./cmd/budgetd
+	BUDGET_API_KEY=1234567890 CORS_ORIGINS="http://localhost:5173" \
+	ADMIN_EMAIL=admin@budget.local ADMIN_PASSWORD=changeme \
+	go run -ldflags="-X main.version=$(shell cat version)" ./cmd/budgetd
 
-## Generate Swagger documentation
+## Generate Swagger documentation and API.md
 api-docs:
 	~/go/bin/swag init -g cmd/budgetd/main.go -o internal/docs
+	go run ./scripts/gen-api-md
 
 ## Apply all up migrations
 migrate:
@@ -30,6 +33,10 @@ migrate:
 
 reset:
 	goose -dir $(MIGR_DIR) $(DB_DRIVER) $(DB_STRING) reset
+
+## Apply schema migrations then seed with dev example data
+migrate-dev: migrate
+	goose -dir $(MIGR_DIR)/seeds $(DB_DRIVER) $(DB_STRING) up
 
 ## Roll back the last migration
 migrate-down:

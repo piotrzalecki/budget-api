@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"strconv"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+
+	"github.com/piotrzalecki/budget-api/internal/repo"
 )
 
 // APIKeyAuth blocks requests whose X-API-Key header does not match
@@ -26,6 +29,40 @@ func APIKeyAuth() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+// SessionAuth validates Bearer tokens from the Authorization header.
+// It calls repo.GetSessionByToken and stores user_id in the gin context.
+func SessionAuth(r repo.Repository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized,
+				gin.H{"error": "missing or invalid Authorization header"})
+			return
+		}
+		token := authHeader[len("Bearer "):]
+		if token == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized,
+				gin.H{"error": "missing token"})
+			return
+		}
+		row, err := r.GetSessionByToken(context.Background(), token)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized,
+				gin.H{"error": "invalid or expired token"})
+			return
+		}
+		c.Set("user_id", row.UserID)
+		c.Next()
+	}
+}
+
+// GetUserID extracts the authenticated user ID from the gin context.
+func GetUserID(c *gin.Context) int64 {
+	v, _ := c.Get("user_id")
+	id, _ := v.(int64)
+	return id
 }
 
 // ValidateRequest is a middleware that validates request body against a struct

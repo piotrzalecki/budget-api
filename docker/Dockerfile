@@ -1,5 +1,5 @@
 # Build stage (ARMv7)
-FROM --platform=linux/arm/v7 golang:1.23-alpine AS builder
+FROM --platform=linux/arm/v7 golang:1.24-alpine AS builder
 
 # Toolchain for CGO + common deps
 RUN apk add --no-cache build-base ca-certificates tzdata git
@@ -9,7 +9,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Install goose for migrations
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 RUN mkdir -p /root/go/bin && \
     cp $(go env GOPATH)/bin/goose /root/go/bin/goose 2>/dev/null || \
     cp /go/bin/goose /root/go/bin/goose 2>/dev/null || \
@@ -20,8 +20,9 @@ RUN mkdir -p /root/go/bin && \
 COPY . .
 
 # Compile for ARMv7 hard-float (Pi 32-bit)
+ARG APP_VERSION=dev
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 \
-    go build -trimpath -ldflags="-s -w" -o /out/budgetd ./cmd/budgetd
+    go build -trimpath -ldflags="-s -w -X main.version=${APP_VERSION}" -o /out/budgetd ./cmd/budgetd
 
 # Runtime stage (ARMv7)
 FROM --platform=linux/arm/v7 alpine:3.20

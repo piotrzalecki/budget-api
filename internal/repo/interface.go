@@ -22,6 +22,12 @@ type Repository interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	DeleteUser(ctx context.Context, id int64) error
 
+	// Session operations
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	GetSessionByToken(ctx context.Context, token string) (GetSessionByTokenRow, error)
+	DeleteSession(ctx context.Context, token string) error
+	DeleteAllSessionsByUserID(ctx context.Context, userID int64) error
+
 	// Transaction operations
 	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
 	GetTransactionByID(ctx context.Context, id int64) (Transaction, error)

@@ -10,20 +10,37 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/piotrzalecki/budget-api/internal/handler"
+	"github.com/piotrzalecki/budget-api/internal/repo"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
 
-func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handler) {
+func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handler, repository repo.Repository, version string) {
 	// Swagger documentation
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Health endpoint (no auth required)
-	router.GET("/health", healthHandler(logger))
+	router.GET("/health", healthHandler(logger, version))
 
-	// API v1 routes (protected by API key)
-	v1 := router.Group("/api/v1")
-	v1.Use(handler.APIKeyAuth())
+	// Public auth routes (no middleware)
+	authGroup := router.Group("/api/v1/auth")
 	{
+		authGroup.POST("/login", handler.ValidateRequest[model.LoginRequest](), handlers.Login)
+	}
+
+	// API v1 routes (protected by session token)
+	v1 := router.Group("/api/v1")
+	v1.Use(handler.SessionAuth(repository))
+	{
+		// Auth
+		v1.POST("/auth/logout", handlers.Logout)
+
+		// User routes
+		v1.GET("/users", handlers.ListUsers)
+		v1.POST("/users", handler.ValidateRequest[model.CreateUserRequest](), handlers.CreateUser)
+		v1.GET("/users/:id", handlers.GetUserByID)
+		v1.PATCH("/users/:id", handler.ValidateRequest[model.UpdateUserRequest](), handlers.UpdateUser)
+		v1.DELETE("/users/:id", handlers.DeleteUser)
+
 		// Transaction routes with validation
 		v1.POST("/transactions", handler.ValidateRequest[model.CreateTransactionRequest](), handlers.CreateTransaction)
 		v1.GET("/transactions", handlers.GetTransactions)
@@ -37,6 +54,8 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 		// Tag routes with validation
 		v1.POST("/tags", handler.ValidateRequest[model.CreateTagRequest](), handlers.CreateTag)
 		v1.GET("/tags", handlers.GetTags)
+		v1.PATCH("/tags/:id", handler.ValidateRequest[model.UpdateTagRequest](), handlers.UpdateTag)
+		v1.DELETE("/tags/:id", handlers.DeleteTag)
 		
 		// Recurring routes with validation
 		v1.POST("/recurring", handler.ValidateRequest[model.CreateRecurringRequest](), handlers.CreateRecurring)
@@ -94,14 +113,14 @@ func setupRoutes(router *gin.Engine, logger *zap.Logger, handlers *handler.Handl
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Health status"
 // @Router /health [get]
-func healthHandler(logger *zap.Logger) gin.HandlerFunc {
+func healthHandler(logger *zap.Logger, version string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Debug("Health check requested")
 		c.JSON(http.StatusOK, gin.H{
 			"data": gin.H{
 				"status":    "healthy",
 				"timestamp": time.Now().UTC().Format(time.RFC3339),
-				"version":   "1.0.0",
+				"version":   version,
 			},
 			"error": nil,
 		})

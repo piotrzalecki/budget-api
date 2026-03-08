@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"github.com/piotrzalecki/budget-api/internal/repo"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
@@ -70,6 +71,7 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 	// Create transaction in database
 	transaction, err := h.repo.CreateTransaction(c.Request.Context(), params)
 	if err != nil {
+		h.logger.Error("failed to create transaction", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to create transaction",
 			"data":  nil,
@@ -97,6 +99,7 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 			}
 			err = h.repo.CreateTransactionTag(c.Request.Context(), tagParams)
 			if err != nil {
+				h.logger.Error("failed to associate tag with transaction", zap.Error(err), zap.Int64("tag_id", tagID))
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "failed to associate tag with transaction",
 					"data":  nil,
@@ -182,6 +185,7 @@ func (h *Handler) GetTransactions(c *gin.Context) {
 	}
 
 	if err != nil {
+		h.logger.Error("failed to fetch transactions", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transactions",
 			"data":  nil,
@@ -195,6 +199,7 @@ func (h *Handler) GetTransactions(c *gin.Context) {
 		// Get tags for this transaction
 		tags, err := h.repo.GetTransactionTags(c.Request.Context(), txn.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch transaction tags", zap.Error(err), zap.Int64("transaction_id", txn.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch transaction tags",
 				"data":  nil,
@@ -273,6 +278,7 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 			})
 			return
 		}
+		h.logger.Error("failed to fetch transaction", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transaction",
 			"data":  nil,
@@ -284,6 +290,7 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 	if request.Deleted != nil && *request.Deleted {
 		err = h.repo.SoftDeleteTransaction(c.Request.Context(), id)
 		if err != nil {
+			h.logger.Error("failed to soft delete transaction", zap.Error(err), zap.Int64("id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to delete transaction",
 				"data":  nil,
@@ -310,6 +317,7 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 	// Update transaction
 	_, err = h.repo.UpdateTransaction(c.Request.Context(), updateParams)
 	if err != nil {
+		h.logger.Error("failed to update transaction", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to update transaction",
 			"data":  nil,
@@ -322,6 +330,7 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 		// Remove existing tags
 		err = h.repo.DeleteAllTransactionTags(c.Request.Context(), id)
 		if err != nil {
+			h.logger.Error("failed to remove existing tags", zap.Error(err), zap.Int64("transaction_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to remove existing tags",
 				"data":  nil,
@@ -348,6 +357,7 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 			}
 			err = h.repo.CreateTransactionTag(c.Request.Context(), tagParams)
 			if err != nil {
+				h.logger.Error("failed to associate tag with transaction", zap.Error(err), zap.Int64("tag_id", tagID))
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "failed to associate tag with transaction",
 					"data":  nil,
@@ -395,6 +405,7 @@ func (h *Handler) GetTransactionByID(c *gin.Context) {
 			})
 			return
 		}
+		h.logger.Error("failed to fetch transaction", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transaction",
 			"data":  nil,
@@ -405,6 +416,7 @@ func (h *Handler) GetTransactionByID(c *gin.Context) {
 	// Get tags for this transaction
 	tags, err := h.repo.GetTransactionTags(c.Request.Context(), transaction.ID)
 	if err != nil {
+		h.logger.Error("failed to fetch transaction tags", zap.Error(err), zap.Int64("transaction_id", transaction.ID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transaction tags",
 			"data":  nil,
@@ -464,6 +476,7 @@ func (h *Handler) GetTransactionsByRecurringID(c *gin.Context) {
 	sourceRecurring := sql.NullInt64{Int64: recurringID, Valid: true}
 	transactions, err := h.repo.GetTransactionsByRecurringID(c.Request.Context(), sourceRecurring)
 	if err != nil {
+		h.logger.Error("failed to fetch transactions by recurring ID", zap.Error(err), zap.Int64("recurring_id", recurringID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transactions",
 			"data":  nil,
@@ -477,6 +490,7 @@ func (h *Handler) GetTransactionsByRecurringID(c *gin.Context) {
 		// Get tags for this transaction
 		tags, err := h.repo.GetTransactionTags(c.Request.Context(), txn.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch transaction tags", zap.Error(err), zap.Int64("transaction_id", txn.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch transaction tags",
 				"data":  nil,
@@ -542,6 +556,7 @@ func (h *Handler) GetTransactionsByTag(c *gin.Context) {
 			})
 			return
 		}
+		h.logger.Error("failed to verify tag", zap.Error(err), zap.Int64("tag_id", tagID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to verify tag",
 			"data":  nil,
@@ -552,6 +567,7 @@ func (h *Handler) GetTransactionsByTag(c *gin.Context) {
 	// Get transactions by tag
 	transactions, err := h.repo.GetTransactionsByTag(c.Request.Context(), tagID)
 	if err != nil {
+		h.logger.Error("failed to fetch transactions by tag", zap.Error(err), zap.Int64("tag_id", tagID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transactions",
 			"data":  nil,
@@ -565,6 +581,7 @@ func (h *Handler) GetTransactionsByTag(c *gin.Context) {
 		// Get tags for this transaction
 		tags, err := h.repo.GetTransactionTags(c.Request.Context(), txn.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch transaction tags", zap.Error(err), zap.Int64("transaction_id", txn.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch transaction tags",
 				"data":  nil,
@@ -619,6 +636,7 @@ func (h *Handler) HardDeleteTransaction(c *gin.Context) {
 			})
 			return
 		}
+		h.logger.Error("failed to fetch transaction", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch transaction",
 			"data":  nil,
@@ -629,6 +647,7 @@ func (h *Handler) HardDeleteTransaction(c *gin.Context) {
 	// Hard delete transaction
 	err = h.repo.HardDeleteTransaction(c.Request.Context(), id)
 	if err != nil {
+		h.logger.Error("failed to hard delete transaction", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to delete transaction",
 			"data":  nil,
@@ -676,6 +695,7 @@ func (h *Handler) PurgeSoftDeletedTransactions(c *gin.Context) {
 	deletedAt := sql.NullTime{Time: cutoffDate, Valid: true}
 	err = h.repo.PurgeSoftDeletedTransactions(c.Request.Context(), deletedAt)
 	if err != nil {
+		h.logger.Error("failed to purge soft deleted transactions", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to purge transactions",
 			"data":  nil,

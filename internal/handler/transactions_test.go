@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -180,6 +182,10 @@ func (m *mockTransactionRepo) UpdateSetting(ctx context.Context, arg repo.Update
 func (m *mockTransactionRepo) DeleteSetting(ctx context.Context, key string) error { panic("not implemented") }
 func (m *mockTransactionRepo) GetMonthlyReport(ctx context.Context, arg repo.GetMonthlyReportParams) ([]repo.GetMonthlyReportRow, error) { panic("not implemented") }
 func (m *mockTransactionRepo) GetMonthlyTotals(ctx context.Context, arg repo.GetMonthlyTotalsParams) (repo.GetMonthlyTotalsRow, error) { panic("not implemented") }
+func (m *mockTransactionRepo) CreateSession(ctx context.Context, arg repo.CreateSessionParams) (repo.Session, error) { panic("not implemented") }
+func (m *mockTransactionRepo) GetSessionByToken(ctx context.Context, token string) (repo.GetSessionByTokenRow, error) { panic("not implemented") }
+func (m *mockTransactionRepo) DeleteSession(ctx context.Context, token string) error { panic("not implemented") }
+func (m *mockTransactionRepo) DeleteAllSessionsByUserID(ctx context.Context, userID int64) error { panic("not implemented") }
 
 func TestCreateTransaction(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -190,7 +196,7 @@ func TestCreateTransaction(t *testing.T) {
 		},
 		transactionTags: make(map[int64][]repo.Tag),
 	}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.POST("/transactions", ValidateRequest[model.CreateTransactionRequest](), h.CreateTransaction)
 
@@ -292,7 +298,7 @@ func TestGetTransactions(t *testing.T) {
 		},
 		transactionTags: make(map[int64][]repo.Tag),
 	}
-	h := NewHandler(mock)
+	h := NewHandler(mock, zap.NewNop())
 	router := gin.New()
 	router.GET("/transactions", h.GetTransactions)
 
@@ -392,7 +398,7 @@ func TestUpdateTransaction(t *testing.T) {
 				},
 				transactionTags: make(map[int64][]repo.Tag),
 			}
-			h := NewHandler(mock)
+			h := NewHandler(mock, zap.NewNop())
 			router := gin.New()
 			router.PATCH("/transactions/:id", ValidateRequest[model.UpdateTransactionRequest](), h.UpdateTransaction)
 

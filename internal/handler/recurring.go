@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"github.com/piotrzalecki/budget-api/internal/repo"
 	"github.com/piotrzalecki/budget-api/pkg/model"
 )
@@ -88,6 +89,7 @@ func (h *Handler) CreateRecurring(c *gin.Context) {
 	// Create recurring rule in database
 	recurring, err := h.repo.CreateRecurring(c.Request.Context(), params)
 	if err != nil {
+		h.logger.Error("failed to create recurring rule", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to create recurring rule",
 			"data":  nil,
@@ -115,6 +117,7 @@ func (h *Handler) CreateRecurring(c *gin.Context) {
 			}
 			err = h.repo.CreateRecurringTag(c.Request.Context(), tagParams)
 			if err != nil {
+				h.logger.Error("failed to associate tag with recurring rule", zap.Error(err), zap.Int64("tag_id", tagID))
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "failed to associate tag with recurring rule",
 					"data":  nil,
@@ -150,6 +153,7 @@ func (h *Handler) GetRecurring(c *gin.Context) {
 	// Get all recurring rules for user
 	recurringRules, err := h.repo.ListRecurring(c.Request.Context(), userID)
 	if err != nil {
+		h.logger.Error("failed to fetch recurring rules", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch recurring rules",
 			"data":  nil,
@@ -163,6 +167,7 @@ func (h *Handler) GetRecurring(c *gin.Context) {
 		// Get tags for this recurring rule
 		tags, err := h.repo.GetRecurringTags(c.Request.Context(), rule.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch recurring rule tags", zap.Error(err), zap.Int64("recurring_id", rule.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch recurring rule tags",
 				"data":  nil,
@@ -245,6 +250,7 @@ func (h *Handler) GetRecurringByID(c *gin.Context) {
 	// Get tags for this recurring rule
 	tags, err := h.repo.GetRecurringTags(c.Request.Context(), rule.ID)
 	if err != nil {
+		h.logger.Error("failed to fetch recurring rule tags", zap.Error(err), zap.Int64("recurring_id", rule.ID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch recurring rule tags",
 			"data":  nil,
@@ -406,6 +412,7 @@ func (h *Handler) UpdateRecurring(c *gin.Context) {
 	// Update recurring rule
 	_, err = h.repo.UpdateRecurring(c.Request.Context(), updateParams)
 	if err != nil {
+		h.logger.Error("failed to update recurring rule", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to update recurring rule",
 			"data":  nil,
@@ -418,6 +425,7 @@ func (h *Handler) UpdateRecurring(c *gin.Context) {
 		// Delete existing tags
 		err = h.repo.DeleteAllRecurringTags(c.Request.Context(), id)
 		if err != nil {
+			h.logger.Error("failed to remove existing tags", zap.Error(err), zap.Int64("recurring_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to remove existing tags",
 				"data":  nil,
@@ -444,6 +452,7 @@ func (h *Handler) UpdateRecurring(c *gin.Context) {
 			}
 			err = h.repo.CreateRecurringTag(c.Request.Context(), tagParams)
 			if err != nil {
+				h.logger.Error("failed to associate tag with recurring rule", zap.Error(err), zap.Int64("tag_id", tagID))
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "failed to associate tag with recurring rule",
 					"data":  nil,
@@ -499,6 +508,7 @@ func (h *Handler) DeleteRecurring(c *gin.Context) {
 	// Delete all associated tags first
 	err = h.repo.DeleteAllRecurringTags(c.Request.Context(), id)
 	if err != nil {
+		h.logger.Error("failed to remove associated tags", zap.Error(err), zap.Int64("recurring_id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to remove associated tags",
 			"data":  nil,
@@ -509,6 +519,7 @@ func (h *Handler) DeleteRecurring(c *gin.Context) {
 	// Delete the recurring rule
 	err = h.repo.DeleteRecurring(c.Request.Context(), id)
 	if err != nil {
+		h.logger.Error("failed to delete recurring rule", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to delete recurring rule",
 			"data":  nil,
@@ -559,6 +570,7 @@ func (h *Handler) GetRecurringByTag(c *gin.Context) {
 	// Get recurring rules by tag
 	recurringRules, err := h.repo.GetRecurringByTag(c.Request.Context(), tagID)
 	if err != nil {
+		h.logger.Error("failed to fetch recurring rules by tag", zap.Error(err), zap.Int64("tag_id", tagID))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch recurring rules by tag",
 			"data":  nil,
@@ -572,6 +584,7 @@ func (h *Handler) GetRecurringByTag(c *gin.Context) {
 		// Get tags for this recurring rule
 		tags, err := h.repo.GetRecurringTags(c.Request.Context(), rule.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch recurring rule tags", zap.Error(err), zap.Int64("recurring_id", rule.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch recurring rule tags",
 				"data":  nil,
@@ -631,6 +644,7 @@ func (h *Handler) ListActiveRecurring(c *gin.Context) {
 	// Get active recurring rules for user
 	recurringRules, err := h.repo.ListActiveRecurring(c.Request.Context(), userID)
 	if err != nil {
+		h.logger.Error("failed to fetch active recurring rules", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch active recurring rules",
 			"data":  nil,
@@ -644,6 +658,7 @@ func (h *Handler) ListActiveRecurring(c *gin.Context) {
 		// Get tags for this recurring rule
 		tags, err := h.repo.GetRecurringTags(c.Request.Context(), rule.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch recurring rule tags", zap.Error(err), zap.Int64("recurring_id", rule.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch recurring rule tags",
 				"data":  nil,
@@ -725,6 +740,7 @@ func (h *Handler) ToggleRecurringActive(c *gin.Context) {
 	// Toggle the active status
 	err = h.repo.ToggleRecurringActive(c.Request.Context(), id)
 	if err != nil {
+		h.logger.Error("failed to toggle recurring rule status", zap.Error(err), zap.Int64("id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to toggle recurring rule status",
 			"data":  nil,
@@ -771,6 +787,7 @@ func (h *Handler) GetRecurringDueOnDate(c *gin.Context) {
 	// Get recurring rules due on the specified date
 	recurringRules, err := h.repo.GetRecurringDueOnDate(c.Request.Context(), dueDate)
 	if err != nil {
+		h.logger.Error("failed to fetch recurring rules due on date", zap.Error(err), zap.String("date", dateStr))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch recurring rules due on date",
 			"data":  nil,
@@ -784,6 +801,7 @@ func (h *Handler) GetRecurringDueOnDate(c *gin.Context) {
 		// Get tags for this recurring rule
 		tags, err := h.repo.GetRecurringTags(c.Request.Context(), rule.ID)
 		if err != nil {
+			h.logger.Error("failed to fetch recurring rule tags", zap.Error(err), zap.Int64("recurring_id", rule.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to fetch recurring rule tags",
 				"data":  nil,

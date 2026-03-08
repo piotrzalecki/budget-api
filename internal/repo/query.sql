@@ -1,7 +1,28 @@
 -- name: CreateUser :one
-INSERT INTO users (email, pw_hash)
-VALUES (?, ?)
+INSERT INTO users (email, pw_hash, is_service)
+VALUES (?, ?, ?)
 RETURNING *;
+
+-- name: CreateSession :one
+INSERT INTO sessions (user_id, token, expires_at)
+VALUES (?, ?, ?)
+RETURNING *;
+
+-- name: GetSessionByToken :one
+SELECT s.id, s.user_id, s.token, s.expires_at, s.created_at,
+       u.id as u_id, u.email as u_email, u.is_service as u_is_service
+FROM sessions s
+JOIN users u ON s.user_id = u.id
+WHERE s.token = ?
+  AND (s.expires_at IS NULL OR s.expires_at > CURRENT_TIMESTAMP);
+
+-- name: DeleteSession :exec
+DELETE FROM sessions
+WHERE token = ?;
+
+-- name: DeleteAllSessionsByUserID :exec
+DELETE FROM sessions
+WHERE user_id = ?;
 
 -- name: GetUserByID :one
 SELECT * FROM users
