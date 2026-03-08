@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Default admin user seeded on startup via `ADMIN_EMAIL` + `ADMIN_PASSWORD` env vars (skipped if any regular users already exist)
+
 ## 0.1.0
 
 - Added session-based authentication: `POST /api/v1/auth/login` and `POST /api/v1/auth/logout`

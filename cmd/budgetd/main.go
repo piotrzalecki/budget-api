@@ -90,6 +90,7 @@ func main() {
 
 	// Seed service user if env vars are set
 	seedServiceUser(context.Background(), repository, logger)
+	seedDefaultUser(context.Background(), repository, logger)
 
 	// Initialize handlers with dependencies
 	handlers := handler.NewHandler(repository, logger)
@@ -171,6 +172,51 @@ func main() {
 	}
 
 	logger.Info("Server exited")
+}
+
+// seedDefaultUser creates an initial admin user when ADMIN_EMAIL and ADMIN_PASSWORD
+// are set and no regular (non-service) users exist yet.
+func seedDefaultUser(ctx context.Context, r repo.Repository, logger *zap.Logger) {
+	email := os.Getenv("ADMIN_EMAIL")
+	password := os.Getenv("ADMIN_PASSWORD")
+	if email == "" || password == "" {
+		return
+	}
+
+	users, err := r.ListUsers(ctx)
+	if err != nil {
+		logger.Error("seedDefaultUser: failed to list users", zap.Error(err))
+		return
+	}
+
+	regularCount := 0
+	for _, u := range users {
+		if !u.IsService {
+			regularCount++
+		}
+	}
+	if regularCount > 0 {
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Error("seedDefaultUser: failed to hash password", zap.Error(err))
+		return
+	}
+
+	_, err = r.CreateUser(ctx, repo.CreateUserParams{
+		Email:     email,
+		PwHash:    string(hash),
+		IsService: false,
+	})
+	if err != nil {
+		logger.Error("seedDefaultUser: failed to create user", zap.Error(err))
+		return
+	}
+
+	logger.Warn("seedDefaultUser: created default admin user — change the password after first login",
+		zap.String("email", email))
 }
 
 // seedServiceUser creates (or updates) a permanent service user and session
