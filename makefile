@@ -19,6 +19,7 @@ test:
 
 run:
 	BUDGET_API_KEY=1234567890 CORS_ORIGINS="http://localhost:5173" \
+	ADMIN_EMAIL=admin@budget.local ADMIN_PASSWORD=changeme \
 	go run -ldflags="-X main.version=$(shell cat version)" ./cmd/budgetd
 
 ## Generate Swagger documentation and API.md

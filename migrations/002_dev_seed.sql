@@ -3,7 +3,7 @@
 
 -- Single dev user (password: devpassword)
 INSERT INTO users (id, email, pw_hash) VALUES
-    (1, 'dev@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy');
+    (1, 'dev@example.com', '$2a$10$JSea3lqOCDeO36QiLl8S..Q/gVk/4NtJ2Ub9320IJWbWdqZngHCp6');
 
 -- Settings
 INSERT INTO settings (key, value) VALUES
