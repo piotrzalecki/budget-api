@@ -9,7 +9,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Install goose for migrations
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 RUN mkdir -p /root/go/bin && \
     cp $(go env GOPATH)/bin/goose /root/go/bin/goose 2>/dev/null || \
     cp /go/bin/goose /root/go/bin/goose 2>/dev/null || \

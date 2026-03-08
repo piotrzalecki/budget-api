@@ -33,9 +33,9 @@ jobs:
           PLATFORM: linux/arm/v7
         run: |
           docker buildx build \
-            --platform $PLATFORM \
-            --build-arg APP_VERSION=$IMAGE_TAG \
-            -t pmz-budget-api:$IMAGE_TAG \
+            --platform linux/arm/v7 \
+            --build-arg APP_VERSION=0.1.1 \
+            -t pmz-budget-api:0.1.1 \
             -f docker/Dockerfile \
             .
 
